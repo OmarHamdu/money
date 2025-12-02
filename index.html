@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام حسابات عمر (مع التاريخ)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --sidebar-bg: linear-gradient(180deg, #2c3e50 0%, #3498db 100%);
+            --card-bg: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #7f8c8d;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --radius: 15px;
+            --shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- القائمة الجانبية --- */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100%;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 20px;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 16px 25px;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.8);
+            text-align: right;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: 'Tajawal', sans-serif;
+            border-right: 4px solid transparent;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            border-right-color: white;
+            padding-right: 30px;
+        }
+
+        .nav-btn span { margin-left: 10px; font-size: 1.2rem; }
+
+        /* --- المحتوى الرئيسي --- */
+        .main-content {
+            margin-right: 260px;
+            padding: 40px;
+            width: 100%;
+            transition: margin 0.3s;
+        }
+
+        .page {
+            display: none;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .page.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: var(--text-primary);
+            font-size: 2rem;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--accent-color);
+            border-radius: 2px;
+        }
+
+        /* --- البطاقات --- */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .card:hover { transform: translateY(-5px); }
+
+        .card h3 { 
+            margin-top: 0; 
+            font-size: 1.1rem; 
+            color: var(--text-secondary); 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card .amount { 
+            font-size: 2.2rem; 
+            font-weight: 700; 
+            margin-top: 15px; 
+            color: var(--text-primary);
+        }
+
+        .card.green { border-bottom: 4px solid var(--success-color); }
+        .card.green .amount { color: var(--success-color); }
+        
+        .card.red { border-bottom: 4px solid var(--danger-color); }
+        .card.red .amount { color: var(--danger-color); }
+
+        .card.orange { border-bottom: 4px solid var(--warning-color); }
+        .card.orange .amount { color: var(--warning-color); }
+
+        /* --- النماذج والإدخال --- */
+        .input-group {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            margin-bottom: 30px;
+        }
+
+        .form-control { flex: 1; min-width: 200px; }
+        
+        .form-control label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: var(--text-primary); 
+        }
+
+        .form-control input, .form-control select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            font-family: 'Tajawal', sans-serif;
+            font-size: 1rem;
+            background: #fdfdfd;
+            box-sizing: border-box;
+        }
+
+        .form-control input[type="date"] {
+            font-family: 'Tajawal', sans-serif;
+        }
+
+        .form-control input:focus, .form-control select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: white;
+        }
+
+        button.action-btn {
+            padding: 12px 30px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Tajawal', sans-serif;
+            transition: 0.2s;
+            height: 46px;
+        }
+
+        button.action-btn:hover { background-color: #2980b9; transform: scale(1.02); }
+
+        /* --- الجداول --- */
+        .table-container {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        
+        thead tr { background-color: #f8f9fa; border-bottom: 2px solid #eee; }
+        
+        th { 
+            text-align: right; 
+            padding: 15px 20px; 
+            color: var(--text-secondary); 
+            font-weight: 600; 
+        }
+
+        td { 
+            padding: 15px 20px; 
+            border-bottom: 1px solid #eee; 
+            color: var(--text-primary);
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: #fafafa; }
+
+        .delete-btn {
+            background-color: #ffebee;
+            color: var(--danger-color);
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .delete-btn:hover { background-color: var(--danger-color); color: white; }
+
+        /* --- متجاوب (موبايل) --- */
+        @media (max-width: 900px) {
+            .sidebar { width: 70px; }
+            .sidebar h2 { display: none; }
+            .nav-btn span { margin: 0; font-size: 1.5rem; }
+            .nav-btn { text-align: center; padding: 20px 0; justify-content: center; }
+            .nav-btn::after { content: none; }
+            .main-content { margin-right: 70px; padding: 20px; }
+        }
+
+        @media (max-width: 600px) {
+            .sidebar { width: 100%; height: auto; position: relative; display: flex; overflow-x: auto; padding: 10px 0; }
+            .nav-btn { flex: 1; min-width: 60px; padding: 10px; border-right: none; border-bottom: 3px solid transparent; }
+            .nav-btn:hover, .nav-btn.active { border-right: none; border-bottom-color: white; padding-right: 10px; }
+            .main-content { margin-right: 0; padding: 15px; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>👤 عمر للتمويل</h2>
+        <button class="nav-btn active" onclick="showPage('home')"><span>🏠</span> الرئيسية</button>
+        <button class="nav-btn" onclick="showPage('meeza')"><span>💳</span> ميزة</button>
+        <button class="nav-btn" onclick="showPage('fawry')"><span>⚡</span> فوري</button>
+        <button class="nav-btn" onclick="showPage('personal')"><span>🎓</span> مصاريف</button>
+        <button class="nav-btn" onclick="showPage('income')"><span>💰</span> الدخل</button>
+        <button class="nav-btn" onclick="showPage('debts')"><span>📉</span> المديونية (عليك)</button>
+        <button class="nav-btn" onclick="showPage('credits')"><span>📈</span> الداين (ليك)</button>
+        <button class="nav-btn" onclick="showPage('summary')"><span>📊</span> الملخص</button>
+        
+        <div style="margin-top: auto; padding: 20px; text-align: center;">
+            <button onclick="resetData()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-family: 'Tajawal'; font-size: 0.8rem;">⚠ تصفير البيانات</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+
+        <div id="home" class="page active">
+            <h1>أهلاً بك يا عمر 👋</h1>
+            <p style="color: #7f8c8d; margin-bottom: 30px;">نظرة سريعة على وضعك المالي الحالي</p>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>رصيد ميزة الحالي <span>💳</span></h3>
+                    <div class="amount" id="home-meeza-balance">0 ج.م</div>
+                </div>
+                <div class="card">
+                    <h3>رصيد فوري الحالي <span>⚡</span></h3>
+                    <div class="amount" id="home-fawry-balance">0 ج.م</div>
+                </div>
+                <div class="card red">
+                    <h3>عليك فلوس (مديونية) <span>📉</span></h3>
+                    <div class="amount" id="home-debts-total">0 ج.م</div>
+                </div>
+                <div class="card green">
+                    <h3>ليك فلوس (داين) <span>📈</span></h3>
+                    <div class="amount" id="home-credits-total">0 ج.م</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="meeza" class="page">
+            <h1>💳 إدارة حساب ميزة</h1>
+            <div class="dashboard-grid">
+                <div class="card green"><h3>إجمالي الإيداع</h3><div class="amount" id="meeza-in-total">0</div></div>
+                <div class="card red"><h3>إجمالي السحب</h3><div class="amount" id="meeza-out-total">0</div></div>
+                <div class="card"><h3>المتبقي في الكارت</h3><div class="amount" id="meeza-balance">0</div></div>
+            </div>
+
+            <div class="input-group">
+                <div class="form-control">
+                    <label>نوع العملية</label>
+                    <select id="meeza-type">
+                        <option value="in">إيداع (دخل للكارت)</option>
+                        <option value="out">شراء/سحب (خرج من الكارت)</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label>المبلغ (ج.م)</label>
+                    <input type="number" id="meeza-amount" placeholder="مثال: 500">
+                </div>
+                <div class="form-control">
+                    <label>التاريخ</label>
+                    <input type="date" id="meeza-date">
+                </div>
+                <div class="form-control">
+                    <label>تفاصيل العملية</label>
+                    <input type="text" id="meeza-desc" placeholder="مثال: تحويل راتب / مشتريات سوبر ماركت">
+                </div>
+                <button class="action-btn" onclick="addTransaction('meeza')">تسجيل العملية</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr><th>الحالة</th><th>المبلغ</th><th>التاريخ</th><th>التفاصيل</th><th>حذف</th></tr>
+                    </thead>
+                    <tbody id="meeza-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="fawry" class="page">
+            <h1>⚡ حسابات ماكينة فوري</h1>
+            <div class="dashboard-grid">
+                <div class="card green"><h3>إجمالي الشحن (مدخلات)</h3><div class="amount" id="fawry-in-total">0</div></div>
+                <div class="card red"><h3>إجمالي المدفوعات</h3><div class="amount" id="fawry-out-total">0</div></div>
+                <div class="card"><h3>رصيد الماكينة</h3><div class="amount" id="fawry-balance">0</div></div>
+            </div>
+
+            <div class="input-group">
+                <div class="form-control">
+                    <label>نوع العملية</label>
+                    <select id="fawry-type">
+                        <option value="in">إضافة رصيد (شحن)</option>
+                        <option value="out">عملية دفع (سحب)</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label>المبلغ</label>
+                    <input type="number" id="fawry-amount" placeholder="0">
+                </div>
+                <div class="form-control">
+                    <label>التاريخ</label>
+                    <input type="date" id="fawry-date">
+                </div>
+                <div class="form-control">
+                    <label>تفاصيل</label>
+                    <input type="text" id="fawry-desc" placeholder="مثال: شحن رصيد الماكينة / دفع فاتورة">
+                </div>
+                <button class="action-btn" onclick="addTransaction('fawry')">حفظ</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>النوع</th><th>المبلغ</th><th>التاريخ</th><th>التفاصيل</th><th>حذف</th></tr></thead>
+                    <tbody id="fawry-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="personal" class="page">
+            <h1>🎓 المصروفات (جامعة وشخصي)</h1>
+            <div class="dashboard-grid">
+                <div class="card red"><h3>إجمالي ما صرفته</h3><div class="amount" id="personal-total">0</div></div>
+            </div>
+
+            <div class="input-group">
+                <div class="form-control"><label>المبلغ</label><input type="number" id="personal-amount" placeholder="0"></div>
+                <div class="form-control"><label>التاريخ</label><input type="date" id="personal-date"></div>
+                <div class="form-control"><label>فيما صرفت؟</label><input type="text" id="personal-desc" placeholder="مثال: كتب / مواصلات / أكل"></div>
+                <button class="action-btn" onclick="addTransaction('personal')">إضافة مصروف</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>المبلغ</th><th>التاريخ</th><th>التفاصيل</th><th>حذف</th></tr></thead>
+                    <tbody id="personal-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="income" class="page">
+            <h1>💰 سجل الدخل الشهري</h1>
+            <div class="dashboard-grid">
+                <div class="card green"><h3>إجمالي الدخل</h3><div class="amount" id="income-total">0</div></div>
+            </div>
+
+            <div class="input-group">
+                <div class="form-control"><label>المبلغ</label><input type="number" id="income-amount" placeholder="0"></div>
+                <div class="form-control"><label>التاريخ</label><input type="date" id="income-date"></div>
+                <div class="form-control"><label>المصدر</label><input type="text" id="income-desc" placeholder="مثال: راتب / مكافأة / شغل خاص"></div>
+                <button class="action-btn" onclick="addTransaction('income')">إضافة دخل</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>المبلغ</th><th>التاريخ</th><th>المصدر</th><th>حذف</th></tr></thead>
+                    <tbody id="income-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="debts" class="page">
+            <h1>📉 المديونية (فلوس عليك)</h1>
+            <p>سجل هنا أي مبالغ استلفتها ويجب عليك سدادها.</p>
+            <div class="dashboard-grid">
+                <div class="card red"><h3>إجمالي الديون</h3><div class="amount" id="debts-total">0</div></div>
+            </div>
+
+            <div class="input-group">
+                <div class="form-control"><label>المبلغ</label><input type="number" id="debts-amount" placeholder="0"></div>
+                <div class="form-control"><label>تاريخ الاستلاف</label><input type="date" id="debts-date"></div>
+                <div class="form-control"><label>اسم الدائن (لمين؟)</label><input type="text" id="debts-desc" placeholder="مثال: محمد / السوبر ماركت"></div>
+                <button class="action-btn" onclick="addTransaction('debts')">تسجيل دين</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>المبلغ</th><th>التاريخ</th><th>الشخص/الجهة</th><th>حذف (تم السداد)</th></tr></thead>
+                    <tbody id="debts-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="credits" class="page">
+            <h1>📈 الداين (فلوس ليك)</h1>
+            <p>سجل هنا أي مبالغ لك عند الناس.</p>
+            <div class="dashboard-grid">
+                <div class="card green"><h3>إجمالي المستحقات</h3><div class="amount" id="credits-total">0</div></div>
+            </div>
+
+            <div class="input-group">
+                <div class="form-control"><label>المبلغ</label><input type="number" id="credits-amount" placeholder="0"></div>
+                <div class="form-control"><label>تاريخ الاستحقاق</label><input type="date" id="credits-date"></div>
+                <div class="form-control"><label>اسم المدين (عند مين؟)</label><input type="text" id="credits-desc" placeholder="مثال: صديق / عميل"></div>
+                <button class="action-btn" onclick="addTransaction('credits')">تسجيل مستحق</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>المبلغ</th><th>التاريخ</th><th>اسم الشخص</th><th>حذف (تم التحصيل)</th></tr></thead>
+                    <tbody id="credits-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="summary" class="page">
+            <h1>📊 التقرير المالي الشامل</h1>
+            
+            <h3 style="margin-top: 30px; border-right: 5px solid var(--accent-color); padding-right: 10px;">أولاً: التدفقات النقدية (الكاش)</h3>
+            <div class="dashboard-grid">
+                <div class="card green">
+                    <h3>كل اللي دخل جيبك</h3>
+                    <div class="amount" id="grand-total-in">0</div>
+                    <small>دخل + إيداع ميزة + شحن فوري</small>
+                </div>
+                <div class="card red">
+                    <h3>كل اللي صرفته</h3>
+                    <div class="amount" id="grand-total-out">0</div>
+                    <small>مصروفات + سحب ميزة + دفع فوري</small>
+                </div>
+                <div class="card orange">
+                    <h3>صافي السيولة (معاك كام دلوقتي)</h3>
+                    <div class="amount" id="grand-net-balance">0</div>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px; border-right: 5px solid var(--danger-color); padding-right: 10px;">ثانياً: الديون والمستحقات</h3>
+            <div class="dashboard-grid">
+                <div class="card red">
+                    <h3>إجمالي الديون (عليك)</h3>
+                    <div class="amount" id="sum-debts">0</div>
+                </div>
+                <div class="card green">
+                    <h3>إجمالي المستحقات (ليك)</h3>
+                    <div class="amount" id="sum-credits">0</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // هيكل البيانات المحدث
+        let appData = {
+            meeza: [],
+            fawry: [],
+            personal: [],
+            income: [],
+            debts: [],   
+            credits: [] 
+        };
+
+        window.onload = function() {
+            if(localStorage.getItem('omarFinancePro')) {
+                let savedData = JSON.parse(localStorage.getItem('omarFinancePro'));
+                appData = { ...appData, ...savedData };
+            }
+            updateAllViews();
+        };
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(pageId).classList.add('active');
+            
+            let activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => btn.getAttribute('onclick').includes(pageId));
+            if(activeBtn) activeBtn.classList.add('active');
+
+            updateAllViews();
+        }
+
+        function addTransaction(category) {
+            let amountInput = document.getElementById(`${category}-amount`);
+            let descInput = document.getElementById(`${category}-desc`);
+            let dateInput = document.getElementById(`${category}-date`); // حقل التاريخ الجديد
+            let typeInput = document.getElementById(`${category}-type`); 
+
+            let amount = parseFloat(amountInput.value);
+            let desc = descInput.value;
+            let type = typeInput ? typeInput.value : 'single';
+            
+            // التعامل مع التاريخ
+            let rawDate = dateInput.value;
+            let displayDate;
+            
+            if (rawDate) {
+                // إذا اختار المستخدم تاريخ
+                displayDate = new Date(rawDate).toLocaleDateString('ar-EG');
+            } else {
+                // إذا لم يختر، نضع تاريخ اليوم
+                displayDate = new Date().toLocaleDateString('ar-EG');
+            }
+
+            if (isNaN(amount) || amount <= 0 || desc.trim() === "") {
+                alert('الرجاء إدخال المبلغ والوصف بشكل صحيح');
+                return;
+            }
+
+            appData[category].push({
+                id: Date.now(),
+                amount: amount,
+                desc: desc,
+                type: type,
+                date: displayDate // استخدام التاريخ المحدد
+            });
+
+            saveData();
+            updateAllViews();
+            
+            // تنظيف الحقول
+            amountInput.value = '';
+            descInput.value = '';
+            dateInput.value = ''; // تصفير التاريخ
+        }
+
+        function deleteTransaction(category, id) {
+            if(confirm('هل أنت متأكد من الحذف؟')) {
+                appData[category] = appData[category].filter(item => item.id !== id);
+                saveData();
+                updateAllViews();
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('omarFinancePro', JSON.stringify(appData));
+        }
+
+        function updateAllViews() {
+            updateCategoryView('meeza');
+            updateCategoryView('fawry');
+            updateSimpleView('personal');
+            updateSimpleView('income');
+            updateSimpleView('debts');    
+            updateSimpleView('credits');  
+            updateSummary();
+        }
+
+        function updateCategoryView(cat) {
+            let totalIn = 0, totalOut = 0;
+            let tbody = document.getElementById(`${cat}-table`);
+            tbody.innerHTML = '';
+
+            // ترتيب العمليات من الأحدث للأقدم
+            [...appData[cat]].reverse().forEach(item => {
+                if (item.type === 'in') totalIn += item.amount;
+                else totalOut += item.amount;
+
+                let typeLabel = item.type === 'in' ? '<span style="color:var(--success-color); font-weight:bold;">+ إيداع</span>' : '<span style="color:var(--danger-color); font-weight:bold;">- سحب</span>';
+                
+                let row = `<tr>
+                    <td>${typeLabel}</td>
+                    <td style="font-weight:bold; font-size:1.1rem;">${item.amount.toLocaleString()}</td>
+                    <td style="color:var(--text-secondary); font-size:0.9rem;">${item.date}</td>
+                    <td>${item.desc}</td>
+                    <td><button class="delete-btn" onclick="deleteTransaction('${cat}', ${item.id})">🗑</button></td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+
+            document.getElementById(`${cat}-in-total`).innerText = totalIn.toLocaleString();
+            document.getElementById(`${cat}-out-total`).innerText = totalOut.toLocaleString();
+            document.getElementById(`${cat}-balance`).innerText = (totalIn - totalOut).toLocaleString();
+            
+            if(document.getElementById(`home-${cat}-balance`)) {
+                document.getElementById(`home-${cat}-balance`).innerText = (totalIn - totalOut).toLocaleString() + " ج.م";
+            }
+        }
+
+        function updateSimpleView(cat) {
+            let total = 0;
+            let tbody = document.getElementById(`${cat}-table`);
+            tbody.innerHTML = '';
+
+            [...appData[cat]].reverse().forEach(item => {
+                total += item.amount;
+                let row = `<tr>
+                    <td style="font-weight:bold;">${item.amount.toLocaleString()}</td>
+                    <td style="color:var(--text-secondary); font-size:0.9rem;">${item.date}</td>
+                    <td>${item.desc}</td>
+                    <td><button class="delete-btn" onclick="deleteTransaction('${cat}', ${item.id})">🗑</button></td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+
+            document.getElementById(`${cat}-total`).innerText = total.toLocaleString() + " ج.م";
+            
+            // تحديث البطاقات في الصفحة الرئيسية
+            if(cat === 'debts') document.getElementById('home-debts-total').innerText = total.toLocaleString() + " ج.م";
+            if(cat === 'credits') document.getElementById('home-credits-total').innerText = total.toLocaleString() + " ج.م";
+        }
+
+        function updateSummary() {
+            let meezaIn = appData.meeza.filter(i => i.type == 'in').reduce((a, b) => a + b.amount, 0);
+            let meezaOut = appData.meeza.filter(i => i.type == 'out').reduce((a, b) => a + b.amount, 0);
+            
+            let fawryIn = appData.fawry.filter(i => i.type == 'in').reduce((a, b) => a + b.amount, 0);
+            let fawryOut = appData.fawry.filter(i => i.type == 'out').reduce((a, b) => a + b.amount, 0);
+
+            let incomeTotal = appData.income.reduce((a, b) => a + b.amount, 0);
+            let personalTotal = appData.personal.reduce((a, b) => a + b.amount, 0);
+            
+            let debtsTotal = appData.debts.reduce((a, b) => a + b.amount, 0);
+            let creditsTotal = appData.credits.reduce((a, b) => a + b.amount, 0);
+
+            let grandIn = incomeTotal + meezaIn + fawryIn;
+            let grandOut = personalTotal + meezaOut + fawryOut;
+
+            document.getElementById('grand-total-in').innerText = grandIn.toLocaleString();
+            document.getElementById('grand-total-out').innerText = grandOut.toLocaleString();
+            document.getElementById('grand-net-balance').innerText = (grandIn - grandOut).toLocaleString() + " ج.م";
+
+            document.getElementById('sum-debts').innerText = debtsTotal.toLocaleString();
+            document.getElementById('sum-credits').innerText = creditsTotal.toLocaleString();
+        }
+
+        function resetData() {
+            if(confirm('⚠ تحذير هام: هل أنت متأكد أنك تريد حذف كل البيانات والبدء من الصفر؟')) {
+                localStorage.removeItem('omarFinancePro');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
