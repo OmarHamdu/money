@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام حسابات عمر (مع التاريخ)</title>
+    <title>نظام حسابات عمر (مزامنة البيانات)</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -42,11 +42,12 @@
             box-shadow: 4px 0 15px rgba(0,0,0,0.1);
             z-index: 1000;
             transition: all 0.3s;
+            overflow-y: auto; /* السماح بالسكرول لو القائمة طويلة */
         }
 
         .sidebar h2 {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             font-size: 1.6rem;
             font-weight: 700;
             letter-spacing: 1px;
@@ -58,10 +59,10 @@
             display: flex;
             align-items: center;
             width: 100%;
-            padding: 16px 25px;
+            padding: 14px 25px;
             background: none;
             border: none;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255,255,255,0.9);
             text-align: right;
             font-size: 1rem;
             cursor: pointer;
@@ -71,13 +72,43 @@
         }
 
         .nav-btn:hover, .nav-btn.active {
-            background-color: rgba(255,255,255,0.1);
+            background-color: rgba(255,255,255,0.15);
             color: white;
             border-right-color: white;
             padding-right: 30px;
         }
 
         .nav-btn span { margin-left: 10px; font-size: 1.2rem; }
+
+        /* أزرار التحكم في البيانات */
+        .data-controls {
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .control-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Tajawal';
+            font-size: 0.9rem;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .btn-save { background: #27ae60; color: white; }
+        .btn-save:hover { background: #219150; }
+        
+        .btn-load { background: #e67e22; color: white; }
+        .btn-load:hover { background: #d35400; }
+
+        .btn-reset { background: rgba(231, 76, 60, 0.3); color: #ffbaba; margin-top: 20px;}
+        .btn-reset:hover { background: #c0392b; color: white; }
 
         /* --- المحتوى الرئيسي --- */
         .main-content {
@@ -196,9 +227,7 @@
             box-sizing: border-box;
         }
 
-        .form-control input[type="date"] {
-            font-family: 'Tajawal', sans-serif;
-        }
+        .form-control input[type="date"] { font-family: 'Tajawal', sans-serif; }
 
         .form-control input:focus, .form-control select:focus {
             outline: none;
@@ -273,13 +302,15 @@
             .nav-btn span { margin: 0; font-size: 1.5rem; }
             .nav-btn { text-align: center; padding: 20px 0; justify-content: center; }
             .nav-btn::after { content: none; }
+            .data-controls { display: none; } /* إخفاء أزرار النسخ في الموبايل الصغير جداً إلا لو فتح القائمة */
             .main-content { margin-right: 70px; padding: 20px; }
         }
 
         @media (max-width: 600px) {
-            .sidebar { width: 100%; height: auto; position: relative; display: flex; overflow-x: auto; padding: 10px 0; }
-            .nav-btn { flex: 1; min-width: 60px; padding: 10px; border-right: none; border-bottom: 3px solid transparent; }
-            .nav-btn:hover, .nav-btn.active { border-right: none; border-bottom-color: white; padding-right: 10px; }
+            .sidebar { width: 100%; height: auto; position: relative; display: flex; flex-direction: column; padding: 10px 0; }
+            .sidebar h2 { display: block; font-size: 1.2rem; margin-bottom: 10px; }
+            .data-controls { display: block; border-top: 1px solid rgba(255,255,255,0.2); margin-top: 10px; }
+            .nav-btn { text-align: right; padding: 10px 20px; justify-content: flex-start; }
             .main-content { margin-right: 0; padding: 15px; }
             .dashboard-grid { grid-template-columns: 1fr; }
         }
@@ -298,8 +329,10 @@
         <button class="nav-btn" onclick="showPage('credits')"><span>📈</span> الداين (ليك)</button>
         <button class="nav-btn" onclick="showPage('summary')"><span>📊</span> الملخص</button>
         
-        <div style="margin-top: auto; padding: 20px; text-align: center;">
-            <button onclick="resetData()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-family: 'Tajawal'; font-size: 0.8rem;">⚠ تصفير البيانات</button>
+        <div class="data-controls">
+            <button class="control-btn btn-save" onclick="exportData()">💾 حفظ نسخة بيانات</button>
+            <button class="control-btn btn-load" onclick="importData()">📂 استرجاع نسخة</button>
+            <button class="control-btn btn-reset" onclick="resetData()">⚠ تصفير كل البيانات</button>
         </div>
     </div>
 
@@ -327,6 +360,16 @@
                     <div class="amount" id="home-credits-total">0 ج.م</div>
                 </div>
             </div>
+            
+            <div style="background: #e8f6f3; padding: 20px; border-radius: 10px; border: 1px solid #d4efdf; margin-top: 20px;">
+                <h3 style="color: #16a085; margin-top: 0;">📌 ملاحظة هامة للنقل بين الأجهزة:</h3>
+                <p>لنقل بياناتك من الموبايل للكمبيوتر (أو العكس):</p>
+                <ol>
+                    <li>اضغط على زر <b>"💾 حفظ نسخة بيانات"</b> من الجهاز القديم (سينزل ملف).</li>
+                    <li>أرسل الملف للجهاز الجديد (واتساب/إيميل).</li>
+                    <li>من الجهاز الجديد، اضغط <b>"📂 استرجاع نسخة"</b> واختر الملف.</li>
+                </ol>
+            </div>
         </div>
 
         <div id="meeza" class="page">
@@ -338,209 +381,98 @@
             </div>
 
             <div class="input-group">
-                <div class="form-control">
-                    <label>نوع العملية</label>
-                    <select id="meeza-type">
-                        <option value="in">إيداع (دخل للكارت)</option>
-                        <option value="out">شراء/سحب (خرج من الكارت)</option>
-                    </select>
-                </div>
-                <div class="form-control">
-                    <label>المبلغ (ج.م)</label>
-                    <input type="number" id="meeza-amount" placeholder="مثال: 500">
-                </div>
-                <div class="form-control">
-                    <label>التاريخ</label>
-                    <input type="date" id="meeza-date">
-                </div>
-                <div class="form-control">
-                    <label>تفاصيل العملية</label>
-                    <input type="text" id="meeza-desc" placeholder="مثال: تحويل راتب / مشتريات سوبر ماركت">
-                </div>
+                <div class="form-control"><label>نوع العملية</label><select id="meeza-type"><option value="in">إيداع (دخل للكارت)</option><option value="out">شراء/سحب (خرج من الكارت)</option></select></div>
+                <div class="form-control"><label>المبلغ (ج.م)</label><input type="number" id="meeza-amount" placeholder="مثال: 500"></div>
+                <div class="form-control"><label>التاريخ</label><input type="date" id="meeza-date"></div>
+                <div class="form-control"><label>تفاصيل العملية</label><input type="text" id="meeza-desc" placeholder="مثال: تحويل راتب / مشتريات"></div>
                 <button class="action-btn" onclick="addTransaction('meeza')">تسجيل العملية</button>
             </div>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr><th>الحالة</th><th>المبلغ</th><th>التاريخ</th><th>التفاصيل</th><th>حذف</th></tr>
-                    </thead>
-                    <tbody id="meeza-table"></tbody>
-                </table>
-            </div>
+            <div class="table-container"><table><thead><tr><th>الحالة</th><th>المبلغ</th><th>التاريخ</th><th>التفاصيل</th><th>حذف</th></tr></thead><tbody id="meeza-table"></tbody></table></div>
         </div>
 
         <div id="fawry" class="page">
             <h1>⚡ حسابات ماكينة فوري</h1>
             <div class="dashboard-grid">
-                <div class="card green"><h3>إجمالي الشحن (مدخلات)</h3><div class="amount" id="fawry-in-total">0</div></div>
+                <div class="card green"><h3>إجمالي الشحن</h3><div class="amount" id="fawry-in-total">0</div></div>
                 <div class="card red"><h3>إجمالي المدفوعات</h3><div class="amount" id="fawry-out-total">0</div></div>
                 <div class="card"><h3>رصيد الماكينة</h3><div class="amount" id="fawry-balance">0</div></div>
             </div>
-
             <div class="input-group">
-                <div class="form-control">
-                    <label>نوع العملية</label>
-                    <select id="fawry-type">
-                        <option value="in">إضافة رصيد (شحن)</option>
-                        <option value="out">عملية دفع (سحب)</option>
-                    </select>
-                </div>
-                <div class="form-control">
-                    <label>المبلغ</label>
-                    <input type="number" id="fawry-amount" placeholder="0">
-                </div>
-                <div class="form-control">
-                    <label>التاريخ</label>
-                    <input type="date" id="fawry-date">
-                </div>
-                <div class="form-control">
-                    <label>تفاصيل</label>
-                    <input type="text" id="fawry-desc" placeholder="مثال: شحن رصيد الماكينة / دفع فاتورة">
-                </div>
+                <div class="form-control"><label>نوع العملية</label><select id="fawry-type"><option value="in">إضافة رصيد (شحن)</option><option value="out">عملية دفع (سحب)</option></select></div>
+                <div class="form-control"><label>المبلغ</label><input type="number" id="fawry-amount" placeholder="0"></div>
+                <div class="form-control"><label>التاريخ</label><input type="date" id="fawry-date"></div>
+                <div class="form-control"><label>تفاصيل</label><input type="text" id="fawry-desc" placeholder="مثال: شحن رصيد / دفع فاتورة"></div>
                 <button class="action-btn" onclick="addTransaction('fawry')">حفظ</button>
             </div>
-
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>النوع</th><th>المبلغ</th><th>التاريخ</th><th>التفاصيل</th><th>حذف</th></tr></thead>
-                    <tbody id="fawry-table"></tbody>
-                </table>
-            </div>
+            <div class="table-container"><table><thead><tr><th>النوع</th><th>المبلغ</th><th>التاريخ</th><th>التفاصيل</th><th>حذف</th></tr></thead><tbody id="fawry-table"></tbody></table></div>
         </div>
 
         <div id="personal" class="page">
             <h1>🎓 المصروفات (جامعة وشخصي)</h1>
-            <div class="dashboard-grid">
-                <div class="card red"><h3>إجمالي ما صرفته</h3><div class="amount" id="personal-total">0</div></div>
-            </div>
-
+            <div class="dashboard-grid"><div class="card red"><h3>إجمالي ما صرفته</h3><div class="amount" id="personal-total">0</div></div></div>
             <div class="input-group">
                 <div class="form-control"><label>المبلغ</label><input type="number" id="personal-amount" placeholder="0"></div>
                 <div class="form-control"><label>التاريخ</label><input type="date" id="personal-date"></div>
-                <div class="form-control"><label>فيما صرفت؟</label><input type="text" id="personal-desc" placeholder="مثال: كتب / مواصلات / أكل"></div>
+                <div class="form-control"><label>فيما صرفت؟</label><input type="text" id="personal-desc" placeholder="مثال: كتب / مواصلات"></div>
                 <button class="action-btn" onclick="addTransaction('personal')">إضافة مصروف</button>
             </div>
-
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>المبلغ</th><th>التاريخ</th><th>التفاصيل</th><th>حذف</th></tr></thead>
-                    <tbody id="personal-table"></tbody>
-                </table>
-            </div>
+            <div class="table-container"><table><thead><tr><th>المبلغ</th><th>التاريخ</th><th>التفاصيل</th><th>حذف</th></tr></thead><tbody id="personal-table"></tbody></table></div>
         </div>
 
         <div id="income" class="page">
             <h1>💰 سجل الدخل الشهري</h1>
-            <div class="dashboard-grid">
-                <div class="card green"><h3>إجمالي الدخل</h3><div class="amount" id="income-total">0</div></div>
-            </div>
-
+            <div class="dashboard-grid"><div class="card green"><h3>إجمالي الدخل</h3><div class="amount" id="income-total">0</div></div></div>
             <div class="input-group">
                 <div class="form-control"><label>المبلغ</label><input type="number" id="income-amount" placeholder="0"></div>
                 <div class="form-control"><label>التاريخ</label><input type="date" id="income-date"></div>
-                <div class="form-control"><label>المصدر</label><input type="text" id="income-desc" placeholder="مثال: راتب / مكافأة / شغل خاص"></div>
+                <div class="form-control"><label>المصدر</label><input type="text" id="income-desc" placeholder="مثال: راتب / مكافأة"></div>
                 <button class="action-btn" onclick="addTransaction('income')">إضافة دخل</button>
             </div>
-
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>المبلغ</th><th>التاريخ</th><th>المصدر</th><th>حذف</th></tr></thead>
-                    <tbody id="income-table"></tbody>
-                </table>
-            </div>
+            <div class="table-container"><table><thead><tr><th>المبلغ</th><th>التاريخ</th><th>المصدر</th><th>حذف</th></tr></thead><tbody id="income-table"></tbody></table></div>
         </div>
 
         <div id="debts" class="page">
             <h1>📉 المديونية (فلوس عليك)</h1>
-            <p>سجل هنا أي مبالغ استلفتها ويجب عليك سدادها.</p>
-            <div class="dashboard-grid">
-                <div class="card red"><h3>إجمالي الديون</h3><div class="amount" id="debts-total">0</div></div>
-            </div>
-
+            <div class="dashboard-grid"><div class="card red"><h3>إجمالي الديون</h3><div class="amount" id="debts-total">0</div></div></div>
             <div class="input-group">
                 <div class="form-control"><label>المبلغ</label><input type="number" id="debts-amount" placeholder="0"></div>
                 <div class="form-control"><label>تاريخ الاستلاف</label><input type="date" id="debts-date"></div>
-                <div class="form-control"><label>اسم الدائن (لمين؟)</label><input type="text" id="debts-desc" placeholder="مثال: محمد / السوبر ماركت"></div>
+                <div class="form-control"><label>اسم الدائن</label><input type="text" id="debts-desc" placeholder="مثال: محمد"></div>
                 <button class="action-btn" onclick="addTransaction('debts')">تسجيل دين</button>
             </div>
-
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>المبلغ</th><th>التاريخ</th><th>الشخص/الجهة</th><th>حذف (تم السداد)</th></tr></thead>
-                    <tbody id="debts-table"></tbody>
-                </table>
-            </div>
+            <div class="table-container"><table><thead><tr><th>المبلغ</th><th>التاريخ</th><th>الشخص/الجهة</th><th>حذف (تم السداد)</th></tr></thead><tbody id="debts-table"></tbody></table></div>
         </div>
 
         <div id="credits" class="page">
             <h1>📈 الداين (فلوس ليك)</h1>
-            <p>سجل هنا أي مبالغ لك عند الناس.</p>
-            <div class="dashboard-grid">
-                <div class="card green"><h3>إجمالي المستحقات</h3><div class="amount" id="credits-total">0</div></div>
-            </div>
-
+            <div class="dashboard-grid"><div class="card green"><h3>إجمالي المستحقات</h3><div class="amount" id="credits-total">0</div></div></div>
             <div class="input-group">
                 <div class="form-control"><label>المبلغ</label><input type="number" id="credits-amount" placeholder="0"></div>
                 <div class="form-control"><label>تاريخ الاستحقاق</label><input type="date" id="credits-date"></div>
-                <div class="form-control"><label>اسم المدين (عند مين؟)</label><input type="text" id="credits-desc" placeholder="مثال: صديق / عميل"></div>
+                <div class="form-control"><label>اسم المدين</label><input type="text" id="credits-desc" placeholder="مثال: صديق"></div>
                 <button class="action-btn" onclick="addTransaction('credits')">تسجيل مستحق</button>
             </div>
-
-            <div class="table-container">
-                <table>
-                    <thead><tr><th>المبلغ</th><th>التاريخ</th><th>اسم الشخص</th><th>حذف (تم التحصيل)</th></tr></thead>
-                    <tbody id="credits-table"></tbody>
-                </table>
-            </div>
+            <div class="table-container"><table><thead><tr><th>المبلغ</th><th>التاريخ</th><th>اسم الشخص</th><th>حذف (تم التحصيل)</th></tr></thead><tbody id="credits-table"></tbody></table></div>
         </div>
 
         <div id="summary" class="page">
             <h1>📊 التقرير المالي الشامل</h1>
-            
             <h3 style="margin-top: 30px; border-right: 5px solid var(--accent-color); padding-right: 10px;">أولاً: التدفقات النقدية (الكاش)</h3>
             <div class="dashboard-grid">
-                <div class="card green">
-                    <h3>كل اللي دخل جيبك</h3>
-                    <div class="amount" id="grand-total-in">0</div>
-                    <small>دخل + إيداع ميزة + شحن فوري</small>
-                </div>
-                <div class="card red">
-                    <h3>كل اللي صرفته</h3>
-                    <div class="amount" id="grand-total-out">0</div>
-                    <small>مصروفات + سحب ميزة + دفع فوري</small>
-                </div>
-                <div class="card orange">
-                    <h3>صافي السيولة (معاك كام دلوقتي)</h3>
-                    <div class="amount" id="grand-net-balance">0</div>
-                </div>
+                <div class="card green"><h3>كل اللي دخل جيبك</h3><div class="amount" id="grand-total-in">0</div><small>دخل + إيداع ميزة + شحن فوري</small></div>
+                <div class="card red"><h3>كل اللي صرفته</h3><div class="amount" id="grand-total-out">0</div><small>مصروفات + سحب ميزة + دفع فوري</small></div>
+                <div class="card orange"><h3>صافي السيولة</h3><div class="amount" id="grand-net-balance">0</div></div>
             </div>
-
             <h3 style="margin-top: 30px; border-right: 5px solid var(--danger-color); padding-right: 10px;">ثانياً: الديون والمستحقات</h3>
             <div class="dashboard-grid">
-                <div class="card red">
-                    <h3>إجمالي الديون (عليك)</h3>
-                    <div class="amount" id="sum-debts">0</div>
-                </div>
-                <div class="card green">
-                    <h3>إجمالي المستحقات (ليك)</h3>
-                    <div class="amount" id="sum-credits">0</div>
-                </div>
+                <div class="card red"><h3>إجمالي الديون (عليك)</h3><div class="amount" id="sum-debts">0</div></div>
+                <div class="card green"><h3>إجمالي المستحقات (ليك)</h3><div class="amount" id="sum-credits">0</div></div>
             </div>
         </div>
-
     </div>
 
     <script>
-        // هيكل البيانات المحدث
-        let appData = {
-            meeza: [],
-            fawry: [],
-            personal: [],
-            income: [],
-            debts: [],   
-            credits: [] 
-        };
+        let appData = { meeza: [], fawry: [], personal: [], income: [], debts: [], credits: [] };
 
         window.onload = function() {
             if(localStorage.getItem('omarFinancePro')) {
@@ -553,57 +485,34 @@
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            
             document.getElementById(pageId).classList.add('active');
-            
             let activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => btn.getAttribute('onclick').includes(pageId));
             if(activeBtn) activeBtn.classList.add('active');
-
             updateAllViews();
         }
 
         function addTransaction(category) {
             let amountInput = document.getElementById(`${category}-amount`);
             let descInput = document.getElementById(`${category}-desc`);
-            let dateInput = document.getElementById(`${category}-date`); // حقل التاريخ الجديد
+            let dateInput = document.getElementById(`${category}-date`);
             let typeInput = document.getElementById(`${category}-type`); 
 
             let amount = parseFloat(amountInput.value);
             let desc = descInput.value;
             let type = typeInput ? typeInput.value : 'single';
             
-            // التعامل مع التاريخ
-            let rawDate = dateInput.value;
-            let displayDate;
-            
-            if (rawDate) {
-                // إذا اختار المستخدم تاريخ
-                displayDate = new Date(rawDate).toLocaleDateString('ar-EG');
-            } else {
-                // إذا لم يختر، نضع تاريخ اليوم
-                displayDate = new Date().toLocaleDateString('ar-EG');
-            }
+            let displayDate = dateInput.value ? new Date(dateInput.value).toLocaleDateString('ar-EG') : new Date().toLocaleDateString('ar-EG');
 
             if (isNaN(amount) || amount <= 0 || desc.trim() === "") {
                 alert('الرجاء إدخال المبلغ والوصف بشكل صحيح');
                 return;
             }
 
-            appData[category].push({
-                id: Date.now(),
-                amount: amount,
-                desc: desc,
-                type: type,
-                date: displayDate // استخدام التاريخ المحدد
-            });
-
+            appData[category].push({ id: Date.now(), amount: amount, desc: desc, type: type, date: displayDate });
             saveData();
             updateAllViews();
             
-            // تنظيف الحقول
-            amountInput.value = '';
-            descInput.value = '';
-            dateInput.value = ''; // تصفير التاريخ
+            amountInput.value = ''; descInput.value = ''; dateInput.value = '';
         }
 
         function deleteTransaction(category, id) {
@@ -617,6 +526,49 @@
         function saveData() {
             localStorage.setItem('omarFinancePro', JSON.stringify(appData));
         }
+
+        // --- ميزات النسخ الاحتياطي والاسترجاع ---
+        function exportData() {
+            const dataStr = JSON.stringify(appData);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const exportFileDefaultName = 'omar_finance_backup.json';
+
+            let linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        function importData() {
+            let input = document.createElement('input');
+            input.type = 'file';
+            input.onchange = e => {
+                let file = e.target.files[0];
+                let reader = new FileReader();
+                reader.readAsText(file,'UTF-8');
+                reader.onload = readerEvent => {
+                    try {
+                        let content = readerEvent.target.result;
+                        let parsedData = JSON.parse(content);
+                        if(confirm('سيتم استبدال البيانات الحالية بالبيانات الموجودة في الملف. هل أنت موافق؟')) {
+                            localStorage.setItem('omarFinancePro', JSON.stringify(parsedData));
+                            location.reload();
+                        }
+                    } catch (error) {
+                        alert('حدث خطأ! الملف غير صالح أو تالف.');
+                    }
+                }
+            }
+            input.click();
+        }
+
+        function resetData() {
+            if(confirm('⚠ تحذير هام: هل أنت متأكد أنك تريد حذف كل البيانات والبدء من الصفر؟')) {
+                localStorage.removeItem('omarFinancePro');
+                location.reload();
+            }
+        }
+        // ----------------------------------------
 
         function updateAllViews() {
             updateCategoryView('meeza');
@@ -632,52 +584,28 @@
             let totalIn = 0, totalOut = 0;
             let tbody = document.getElementById(`${cat}-table`);
             tbody.innerHTML = '';
-
-            // ترتيب العمليات من الأحدث للأقدم
             [...appData[cat]].reverse().forEach(item => {
-                if (item.type === 'in') totalIn += item.amount;
-                else totalOut += item.amount;
-
+                if (item.type === 'in') totalIn += item.amount; else totalOut += item.amount;
                 let typeLabel = item.type === 'in' ? '<span style="color:var(--success-color); font-weight:bold;">+ إيداع</span>' : '<span style="color:var(--danger-color); font-weight:bold;">- سحب</span>';
-                
-                let row = `<tr>
-                    <td>${typeLabel}</td>
-                    <td style="font-weight:bold; font-size:1.1rem;">${item.amount.toLocaleString()}</td>
-                    <td style="color:var(--text-secondary); font-size:0.9rem;">${item.date}</td>
-                    <td>${item.desc}</td>
-                    <td><button class="delete-btn" onclick="deleteTransaction('${cat}', ${item.id})">🗑</button></td>
-                </tr>`;
+                let row = `<tr><td>${typeLabel}</td><td style="font-weight:bold; font-size:1.1rem;">${item.amount.toLocaleString()}</td><td style="color:var(--text-secondary); font-size:0.9rem;">${item.date}</td><td>${item.desc}</td><td><button class="delete-btn" onclick="deleteTransaction('${cat}', ${item.id})">🗑</button></td></tr>`;
                 tbody.innerHTML += row;
             });
-
             document.getElementById(`${cat}-in-total`).innerText = totalIn.toLocaleString();
             document.getElementById(`${cat}-out-total`).innerText = totalOut.toLocaleString();
             document.getElementById(`${cat}-balance`).innerText = (totalIn - totalOut).toLocaleString();
-            
-            if(document.getElementById(`home-${cat}-balance`)) {
-                document.getElementById(`home-${cat}-balance`).innerText = (totalIn - totalOut).toLocaleString() + " ج.م";
-            }
+            if(document.getElementById(`home-${cat}-balance`)) document.getElementById(`home-${cat}-balance`).innerText = (totalIn - totalOut).toLocaleString() + " ج.م";
         }
 
         function updateSimpleView(cat) {
             let total = 0;
             let tbody = document.getElementById(`${cat}-table`);
             tbody.innerHTML = '';
-
             [...appData[cat]].reverse().forEach(item => {
                 total += item.amount;
-                let row = `<tr>
-                    <td style="font-weight:bold;">${item.amount.toLocaleString()}</td>
-                    <td style="color:var(--text-secondary); font-size:0.9rem;">${item.date}</td>
-                    <td>${item.desc}</td>
-                    <td><button class="delete-btn" onclick="deleteTransaction('${cat}', ${item.id})">🗑</button></td>
-                </tr>`;
+                let row = `<tr><td style="font-weight:bold;">${item.amount.toLocaleString()}</td><td style="color:var(--text-secondary); font-size:0.9rem;">${item.date}</td><td>${item.desc}</td><td><button class="delete-btn" onclick="deleteTransaction('${cat}', ${item.id})">🗑</button></td></tr>`;
                 tbody.innerHTML += row;
             });
-
             document.getElementById(`${cat}-total`).innerText = total.toLocaleString() + " ج.م";
-            
-            // تحديث البطاقات في الصفحة الرئيسية
             if(cat === 'debts') document.getElementById('home-debts-total').innerText = total.toLocaleString() + " ج.م";
             if(cat === 'credits') document.getElementById('home-credits-total').innerText = total.toLocaleString() + " ج.م";
         }
@@ -685,13 +613,10 @@
         function updateSummary() {
             let meezaIn = appData.meeza.filter(i => i.type == 'in').reduce((a, b) => a + b.amount, 0);
             let meezaOut = appData.meeza.filter(i => i.type == 'out').reduce((a, b) => a + b.amount, 0);
-            
             let fawryIn = appData.fawry.filter(i => i.type == 'in').reduce((a, b) => a + b.amount, 0);
             let fawryOut = appData.fawry.filter(i => i.type == 'out').reduce((a, b) => a + b.amount, 0);
-
             let incomeTotal = appData.income.reduce((a, b) => a + b.amount, 0);
             let personalTotal = appData.personal.reduce((a, b) => a + b.amount, 0);
-            
             let debtsTotal = appData.debts.reduce((a, b) => a + b.amount, 0);
             let creditsTotal = appData.credits.reduce((a, b) => a + b.amount, 0);
 
@@ -701,16 +626,8 @@
             document.getElementById('grand-total-in').innerText = grandIn.toLocaleString();
             document.getElementById('grand-total-out').innerText = grandOut.toLocaleString();
             document.getElementById('grand-net-balance').innerText = (grandIn - grandOut).toLocaleString() + " ج.م";
-
             document.getElementById('sum-debts').innerText = debtsTotal.toLocaleString();
             document.getElementById('sum-credits').innerText = creditsTotal.toLocaleString();
-        }
-
-        function resetData() {
-            if(confirm('⚠ تحذير هام: هل أنت متأكد أنك تريد حذف كل البيانات والبدء من الصفر؟')) {
-                localStorage.removeItem('omarFinancePro');
-                location.reload();
-            }
         }
     </script>
 </body>
