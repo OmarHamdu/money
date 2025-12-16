@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام حسابات عمر (مزامنة البيانات)</title>
+    <title>حسابات عمر (النسخة النهائية)</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -41,8 +41,7 @@
             height: 100%;
             box-shadow: 4px 0 15px rgba(0,0,0,0.1);
             z-index: 1000;
-            transition: all 0.3s;
-            overflow-y: auto; /* السماح بالسكرول لو القائمة طويلة */
+            overflow-y: auto;
         }
 
         .sidebar h2 {
@@ -194,6 +193,9 @@
         .card.orange { border-bottom: 4px solid var(--warning-color); }
         .card.orange .amount { color: var(--warning-color); }
 
+        .card.blue { border-bottom: 4px solid #3498db; }
+        .card.blue .amount { color: #3498db; }
+
         /* --- النماذج والإدخال --- */
         .input-group {
             background: var(--card-bg);
@@ -226,8 +228,6 @@
             background: #fdfdfd;
             box-sizing: border-box;
         }
-
-        .form-control input[type="date"] { font-family: 'Tajawal', sans-serif; }
 
         .form-control input:focus, .form-control select:focus {
             outline: none;
@@ -302,7 +302,7 @@
             .nav-btn span { margin: 0; font-size: 1.5rem; }
             .nav-btn { text-align: center; padding: 20px 0; justify-content: center; }
             .nav-btn::after { content: none; }
-            .data-controls { display: none; } /* إخفاء أزرار النسخ في الموبايل الصغير جداً إلا لو فتح القائمة */
+            .data-controls { display: none; }
             .main-content { margin-right: 70px; padding: 20px; }
         }
 
@@ -325,8 +325,8 @@
         <button class="nav-btn" onclick="showPage('fawry')"><span>⚡</span> فوري</button>
         <button class="nav-btn" onclick="showPage('personal')"><span>🎓</span> مصاريف</button>
         <button class="nav-btn" onclick="showPage('income')"><span>💰</span> الدخل</button>
-        <button class="nav-btn" onclick="showPage('debts')"><span>📉</span> المديونية (عليك)</button>
-        <button class="nav-btn" onclick="showPage('credits')"><span>📈</span> الداين (ليك)</button>
+        <button class="nav-btn" onclick="showPage('debts')"><span>📉</span> المديونية</button>
+        <button class="nav-btn" onclick="showPage('credits')"><span>📈</span> الداين</button>
         <button class="nav-btn" onclick="showPage('summary')"><span>📊</span> الملخص</button>
         
         <div class="data-controls">
@@ -362,11 +362,10 @@
             </div>
             
             <div style="background: #e8f6f3; padding: 20px; border-radius: 10px; border: 1px solid #d4efdf; margin-top: 20px;">
-                <h3 style="color: #16a085; margin-top: 0;">📌 ملاحظة هامة للنقل بين الأجهزة:</h3>
-                <p>لنقل بياناتك من الموبايل للكمبيوتر (أو العكس):</p>
-                <ol>
-                    <li>اضغط على زر <b>"💾 حفظ نسخة بيانات"</b> من الجهاز القديم (سينزل ملف).</li>
-                    <li>أرسل الملف للجهاز الجديد (واتساب/إيميل).</li>
+                <h3 style="color: #16a085; margin-top: 0;">📌 كيفية النقل بين الأجهزة (يدوياً):</h3>
+                <ol style="color: #2c3e50;">
+                    <li>من جهازك القديم، اضغط <b>"💾 حفظ نسخة بيانات"</b>.</li>
+                    <li>أرسل الملف للجهاز الجديد.</li>
                     <li>من الجهاز الجديد، اضغط <b>"📂 استرجاع نسخة"</b> واختر الملف.</li>
                 </ol>
             </div>
@@ -457,18 +456,37 @@
 
         <div id="summary" class="page">
             <h1>📊 التقرير المالي الشامل</h1>
-            <h3 style="margin-top: 30px; border-right: 5px solid var(--accent-color); padding-right: 10px;">أولاً: التدفقات النقدية (الكاش)</h3>
+            
+            <h3 style="margin-top: 30px; color: var(--accent-color);">🔹 موقف الدخل الشخصي</h3>
             <div class="dashboard-grid">
-                <div class="card green"><h3>كل اللي دخل جيبك</h3><div class="amount" id="grand-total-in">0</div><small>دخل + إيداع ميزة + شحن فوري</small></div>
-                <div class="card red"><h3>كل اللي صرفته</h3><div class="amount" id="grand-total-out">0</div><small>مصروفات + سحب ميزة + دفع فوري</small></div>
-                <div class="card orange"><h3>صافي السيولة</h3><div class="amount" id="grand-net-balance">0</div></div>
+                <div class="card green">
+                    <h3>إجمالي الدخل</h3>
+                    <div class="amount" id="sum-income">0</div>
+                </div>
+                <div class="card red">
+                    <h3>المصروفات الشخصية</h3>
+                    <div class="amount" id="sum-personal">0</div>
+                </div>
+                <div class="card blue">
+                    <h3>المتبقي من الدخل الحر</h3>
+                    <div class="amount" id="net-income-personal">0</div>
+                    <small style="color: #7f8c8d;">(الدخل - المصروفات) فقط</small>
+                </div>
             </div>
-            <h3 style="margin-top: 30px; border-right: 5px solid var(--danger-color); padding-right: 10px;">ثانياً: الديون والمستحقات</h3>
+
+            <h3 style="margin-top: 30px; border-right: 5px solid var(--accent-color); padding-right: 10px;">🔸 أرصدة العمل (ميزة وفوري)</h3>
             <div class="dashboard-grid">
-                <div class="card red"><h3>إجمالي الديون (عليك)</h3><div class="amount" id="sum-debts">0</div></div>
-                <div class="card green"><h3>إجمالي المستحقات (ليك)</h3><div class="amount" id="sum-credits">0</div></div>
+                <div class="card"><h3>رصيد ميزة الحالي</h3><div class="amount" id="sum-meeza-balance">0</div></div>
+                <div class="card"><h3>رصيد فوري الحالي</h3><div class="amount" id="sum-fawry-balance">0</div></div>
+            </div>
+            
+            <h3 style="margin-top: 30px; border-right: 5px solid var(--danger-color); padding-right: 10px;">🔸 الديون والمستحقات</h3>
+            <div class="dashboard-grid">
+                <div class="card red"><h3>ديون عليك</h3><div class="amount" id="sum-debts">0</div></div>
+                <div class="card green"><h3>فلوس ليك</h3><div class="amount" id="sum-credits">0</div></div>
             </div>
         </div>
+
     </div>
 
     <script>
@@ -613,19 +631,27 @@
         function updateSummary() {
             let meezaIn = appData.meeza.filter(i => i.type == 'in').reduce((a, b) => a + b.amount, 0);
             let meezaOut = appData.meeza.filter(i => i.type == 'out').reduce((a, b) => a + b.amount, 0);
+            
             let fawryIn = appData.fawry.filter(i => i.type == 'in').reduce((a, b) => a + b.amount, 0);
             let fawryOut = appData.fawry.filter(i => i.type == 'out').reduce((a, b) => a + b.amount, 0);
+            
             let incomeTotal = appData.income.reduce((a, b) => a + b.amount, 0);
             let personalTotal = appData.personal.reduce((a, b) => a + b.amount, 0);
+            
             let debtsTotal = appData.debts.reduce((a, b) => a + b.amount, 0);
             let creditsTotal = appData.credits.reduce((a, b) => a + b.amount, 0);
 
-            let grandIn = incomeTotal + meezaIn + fawryIn;
-            let grandOut = personalTotal + meezaOut + fawryOut;
-
-            document.getElementById('grand-total-in').innerText = grandIn.toLocaleString();
-            document.getElementById('grand-total-out').innerText = grandOut.toLocaleString();
-            document.getElementById('grand-net-balance').innerText = (grandIn - grandOut).toLocaleString() + " ج.م";
+            // تحديث بطاقات الملخص
+            document.getElementById('sum-income').innerText = incomeTotal.toLocaleString();
+            document.getElementById('sum-personal').innerText = personalTotal.toLocaleString();
+            
+            // الحساب الجديد (الدخل - المصروفات)
+            let netIncomePersonal = incomeTotal - personalTotal;
+            document.getElementById('net-income-personal').innerText = netIncomePersonal.toLocaleString() + " ج.م";
+            
+            document.getElementById('sum-meeza-balance').innerText = (meezaIn - meezaOut).toLocaleString() + " ج.م";
+            document.getElementById('sum-fawry-balance').innerText = (fawryIn - fawryOut).toLocaleString() + " ج.م";
+            
             document.getElementById('sum-debts').innerText = debtsTotal.toLocaleString();
             document.getElementById('sum-credits').innerText = creditsTotal.toLocaleString();
         }
