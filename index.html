@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حسابات عمر (إدارة الثروة)</title>
+    <title>نظام عمر المالي (الإصدار الشامل)</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -19,683 +19,494 @@
             --gold-color: #f1c40f;
             --radius: 15px;
             --shadow: 0 10px 30px rgba(0,0,0,0.05);
+            --border-color: #eee;
+        }
+
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --sidebar-bg: linear-gradient(180deg, #000000 0%, #1a1a1a 100%);
+            --card-bg: #2d2d2d;
+            --text-primary: #ecf0f1;
+            --text-secondary: #bdc3c7;
+            --border-color: #444;
+            --shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         body {
             font-family: 'Tajawal', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            display: flex;
-            min-height: 100vh;
-            overflow-x: hidden;
+            margin: 0; padding: 0; background-color: var(--bg-color); color: var(--text-primary);
+            display: flex; min-height: 100vh; overflow-x: hidden; transition: 0.3s;
         }
 
-        /* --- القائمة الجانبية --- */
-        .sidebar {
-            width: 260px;
-            background: var(--sidebar-bg);
-            color: white;
-            padding: 20px 0;
-            position: fixed;
-            height: 100%;
-            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-            z-index: 1000;
-            overflow-y: auto;
+        /* شاشة القفل */
+        #lock-screen {
+            position: fixed; top: 0; right: 0; width: 100%; height: 100%;
+            background: var(--sidebar-bg); z-index: 9999;
+            display: flex; justify-content: center; align-items: center; flex-direction: column; color: white;
         }
+        .pin-display { font-size: 2rem; letter-spacing: 10px; margin: 20px 0; background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 10px; min-width: 150px; text-align: center; height: 40px; }
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .num-btn { width: 60px; height: 60px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); background: transparent; color: white; font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
+        .num-btn:hover { background: rgba(255,255,255,0.2); }
 
-        .sidebar h2 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 1.6rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding-bottom: 20px;
-        }
-
-        .nav-btn {
-            display: flex;
-            align-items: center;
-            width: 100%;
-            padding: 14px 25px;
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.9);
-            text-align: right;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.3s;
-            font-family: 'Tajawal', sans-serif;
-            border-right: 4px solid transparent;
-        }
-
-        .nav-btn:hover, .nav-btn.active {
-            background-color: rgba(255,255,255,0.15);
-            color: white;
-            border-right-color: white;
-            padding-right: 30px;
-        }
-
+        /* القائمة الجانبية */
+        .sidebar { width: 260px; background: var(--sidebar-bg); color: white; padding: 20px 0; position: fixed; height: 100%; box-shadow: 4px 0 15px rgba(0,0,0,0.1); z-index: 1000; overflow-y: auto; }
+        .sidebar h2 { text-align: center; margin-bottom: 20px; font-size: 1.6rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
+        .nav-btn { display: flex; align-items: center; width: 100%; padding: 14px 25px; background: none; border: none; color: rgba(255,255,255,0.9); text-align: right; font-size: 1rem; cursor: pointer; transition: 0.3s; font-family: 'Tajawal', sans-serif; border-right: 4px solid transparent; }
+        .nav-btn:hover, .nav-btn.active { background-color: rgba(255,255,255,0.15); border-right-color: white; }
         .nav-btn span { margin-left: 10px; font-size: 1.2rem; }
 
-        /* أزرار التحكم في البيانات */
-        .data-controls {
-            margin-top: 30px;
-            padding: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .control-btn {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: 'Tajawal';
-            font-size: 0.9rem;
-            text-align: center;
-            transition: 0.2s;
-        }
-
-        .btn-save { background: #27ae60; color: white; }
-        .btn-save:hover { background: #219150; }
-        
-        .btn-load { background: #e67e22; color: white; }
-        .btn-load:hover { background: #d35400; }
-
-        .btn-reset { background: rgba(231, 76, 60, 0.3); color: #ffbaba; margin-top: 20px;}
-        .btn-reset:hover { background: #c0392b; color: white; }
-
-        /* --- المحتوى الرئيسي --- */
-        .main-content {
-            margin-right: 260px;
-            padding: 40px;
-            width: 100%;
-            transition: margin 0.3s;
-        }
-
-        .page {
-            display: none;
-            animation: slideUp 0.6s ease-out;
-        }
-
+        /* المحتوى */
+        .main-content { margin-right: 260px; padding: 40px; width: 100%; transition: 0.3s; }
+        .page { display: none; animation: slideUp 0.6s ease-out; }
         .page.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        /* البطاقات */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .card { background: var(--card-bg); padding: 25px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border-color); position: relative; overflow: hidden; }
+        .card h3 { margin-top: 0; color: var(--text-secondary); font-size: 1.1rem; }
+        .card .amount { font-size: 2.2rem; font-weight: 700; margin-top: 15px; color: var(--text-primary); }
+        .card.gold { border-bottom: 4px solid var(--gold-color); background: linear-gradient(135deg, var(--card-bg), #fffbf0); grid-column: 1 / -1; }
+        body.dark-mode .card.gold { background: linear-gradient(135deg, var(--card-bg), #3a3000); }
+        .card.gold .amount { color: #d4ac0d; font-size: 2.8rem; }
+        .card.green { border-bottom: 4px solid var(--success-color); } .card.green .amount { color: var(--success-color); }
+        .card.red { border-bottom: 4px solid var(--danger-color); } .card.red .amount { color: var(--danger-color); }
+        .card.blue { border-bottom: 4px solid var(--accent-color); } .card.blue .amount { color: var(--accent-color); }
+        .card.purple { border-bottom: 4px solid #9b59b6; } .card.purple .amount { color: #9b59b6; }
 
-        h1 {
-            color: var(--text-primary);
-            font-size: 2rem;
-            margin-bottom: 30px;
-            position: relative;
-        }
-
-        h1::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            right: 0;
-            width: 60px;
-            height: 4px;
-            background: var(--accent-color);
-            border-radius: 2px;
-        }
-
-        /* --- البطاقات --- */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            transition: transform 0.3s;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.02);
-        }
-
-        .card:hover { transform: translateY(-5px); }
-
-        .card h3 { 
-            margin-top: 0; 
-            font-size: 1.1rem; 
-            color: var(--text-secondary); 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card .amount { 
-            font-size: 2.2rem; 
-            font-weight: 700; 
-            margin-top: 15px; 
-            color: var(--text-primary);
-        }
-
-        /* ألوان الكروت */
-        .card.green { border-bottom: 4px solid var(--success-color); }
-        .card.green .amount { color: var(--success-color); }
+        /* العناصر الأخرى */
+        .input-group, .settings-group { background: var(--card-bg); padding: 25px; border-radius: var(--radius); box-shadow: var(--shadow); display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 30px; border: 1px solid var(--border-color); }
+        .form-control { flex: 1; min-width: 180px; }
+        .form-control label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .form-control input, .form-control select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; background: var(--bg-color); color: var(--text-primary); box-sizing: border-box; font-family: 'Tajawal'; }
+        .action-btn { padding: 12px 30px; background-color: var(--accent-color); color: white; border: none; border-radius: 8px; cursor: pointer; height: 46px; font-family: 'Tajawal'; font-weight: bold; }
         
-        .card.red { border-bottom: 4px solid var(--danger-color); }
-        .card.red .amount { color: var(--danger-color); }
-
-        .card.orange { border-bottom: 4px solid var(--warning-color); }
-        .card.orange .amount { color: var(--warning-color); }
-
-        .card.blue { border-bottom: 4px solid #3498db; }
-        .card.blue .amount { color: #3498db; }
-
-        /* الكارت الذهبي للثروة */
-        .card.gold { 
-            border-bottom: 4px solid var(--gold-color); 
-            background: linear-gradient(to right bottom, #fff, #fffbf0);
-            grid-column: 1 / -1; /* يمتد بعرض الصفحة */
-        }
-        .card.gold .amount { color: #d4ac0d; font-size: 3rem; }
-        .card.gold h3 { color: #b7950b; font-weight: bold; }
-
-        /* --- النماذج والإدخال --- */
-        .input-group {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            margin-bottom: 30px;
-        }
-
-        .form-control { flex: 1; min-width: 200px; }
-        
-        .form-control label { 
-            display: block; 
-            margin-bottom: 8px; 
-            font-weight: 600; 
-            color: var(--text-primary); 
-        }
-
-        .form-control input, .form-control select { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid #ddd; 
-            border-radius: 8px; 
-            font-family: 'Tajawal', sans-serif;
-            font-size: 1rem;
-            background: #fdfdfd;
-            box-sizing: border-box;
-        }
-
-        .form-control input:focus, .form-control select:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            background: white;
-        }
-
-        button.action-btn {
-            padding: 12px 30px;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            font-family: 'Tajawal', sans-serif;
-            transition: 0.2s;
-            height: 46px;
-        }
-
-        button.action-btn:hover { background-color: #2980b9; transform: scale(1.02); }
-
-        /* --- الجداول --- */
-        .table-container {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow-x: auto;
-        }
-
+        .table-container { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); overflow-x: auto; border: 1px solid var(--border-color); }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { text-align: right; padding: 15px; background: rgba(0,0,0,0.05); color: var(--text-primary); }
+        td { padding: 15px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); }
+        .delete-btn { background: #ffebee; color: var(--danger-color); border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
         
-        thead tr { background-color: #f8f9fa; border-bottom: 2px solid #eee; }
-        
-        th { 
-            text-align: right; 
-            padding: 15px 20px; 
-            color: var(--text-secondary); 
-            font-weight: 600; 
-        }
+        .settings-list { list-style: none; padding: 0; }
+        .tag { background: var(--accent-color); color: white; padding: 5px 10px; border-radius: 15px; font-size: 0.9rem; }
 
-        td { 
-            padding: 15px 20px; 
-            border-bottom: 1px solid #eee; 
-            color: var(--text-primary);
-        }
-
-        tr:last-child td { border-bottom: none; }
-        tr:hover { background-color: #fafafa; }
-
-        .delete-btn {
-            background-color: #ffebee;
-            color: var(--danger-color);
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.2s;
-        }
-
-        .delete-btn:hover { background-color: var(--danger-color); color: white; }
-
-        /* --- متجاوب (موبايل) --- */
         @media (max-width: 900px) {
-            .sidebar { width: 70px; }
-            .sidebar h2 { display: none; }
-            .nav-btn span { margin: 0; font-size: 1.5rem; }
-            .nav-btn { text-align: center; padding: 20px 0; justify-content: center; }
-            .nav-btn::after { content: none; }
-            .data-controls { display: none; }
+            .sidebar { width: 70px; } .sidebar h2, .nav-btn span { display: none; }
+            .nav-btn { justify-content: center; padding: 20px 0; }
             .main-content { margin-right: 70px; padding: 20px; }
-        }
-
-        @media (max-width: 600px) {
-            .sidebar { width: 100%; height: auto; position: relative; display: flex; flex-direction: column; padding: 10px 0; }
-            .sidebar h2 { display: block; font-size: 1.2rem; margin-bottom: 10px; }
-            .data-controls { display: block; border-top: 1px solid rgba(255,255,255,0.2); margin-top: 10px; }
-            .nav-btn { text-align: right; padding: 10px 20px; justify-content: flex-start; }
-            .main-content { margin-right: 0; padding: 15px; }
-            .dashboard-grid { grid-template-columns: 1fr; }
-            .card.gold .amount { font-size: 2.2rem; }
         }
     </style>
 </head>
 <body>
 
+    <div id="lock-screen">
+        <div style="margin-bottom: 20px;">🔒 أدخل رمز الحماية</div>
+        <div class="pin-display" id="pin-display"></div>
+        <div class="numpad">
+            <button class="num-btn" onclick="enterPin(1)">1</button>
+            <button class="num-btn" onclick="enterPin(2)">2</button>
+            <button class="num-btn" onclick="enterPin(3)">3</button>
+            <button class="num-btn" onclick="enterPin(4)">4</button>
+            <button class="num-btn" onclick="enterPin(5)">5</button>
+            <button class="num-btn" onclick="enterPin(6)">6</button>
+            <button class="num-btn" onclick="enterPin(7)">7</button>
+            <button class="num-btn" onclick="enterPin(8)">8</button>
+            <button class="num-btn" onclick="enterPin(9)">9</button>
+            <button class="num-btn" onclick="resetPin()">C</button>
+            <button class="num-btn" onclick="enterPin(0)">0</button>
+            <button class="num-btn" style="background:var(--success-color); border:none;" onclick="checkPin()">🆗</button>
+        </div>
+    </div>
+
     <div class="sidebar">
-        <h2>👤 عمر للتمويل</h2>
+        <h2>👤 نظام عمر</h2>
         <button class="nav-btn active" onclick="showPage('home')"><span>🏠</span> الرئيسية</button>
+        <button class="nav-btn" onclick="showPage('transfer')"><span>🔀</span> التحويلات</button>
         <button class="nav-btn" onclick="showPage('meeza')"><span>💳</span> ميزة</button>
         <button class="nav-btn" onclick="showPage('fawry')"><span>⚡</span> فوري</button>
         <button class="nav-btn" onclick="showPage('personal')"><span>🎓</span> مصاريف</button>
         <button class="nav-btn" onclick="showPage('income')"><span>💰</span> الدخل</button>
-        <button class="nav-btn" onclick="showPage('debts')"><span>📉</span> المديونية</button>
-        <button class="nav-btn" onclick="showPage('credits')"><span>📈</span> الداين</button>
-        <button class="nav-btn" onclick="showPage('summary')"><span>📊</span> الملخص</button>
-        
-        <div class="data-controls">
-            <button class="control-btn btn-save" onclick="exportData()">💾 حفظ نسخة بيانات</button>
-            <button class="control-btn btn-load" onclick="importData()">📂 استرجاع نسخة</button>
-            <button class="control-btn btn-reset" onclick="resetData()">⚠ تصفير كل البيانات</button>
-        </div>
+        <button class="nav-btn" onclick="showPage('debts')"><span>📉</span> ديون</button>
+        <button class="nav-btn" onclick="showPage('credits')"><span>📈</span> داين</button>
+        <button class="nav-btn" onclick="showPage('settings')"><span>⚙️</span> الإعدادات</button>
     </div>
 
     <div class="main-content">
 
         <div id="home" class="page active">
             <h1>أهلاً بك يا عمر 👋</h1>
-            <p style="color: #7f8c8d; margin-bottom: 30px;">نظرة سريعة على وضعك المالي الحالي</p>
-            
             <div class="dashboard-grid">
-                
                 <div class="card gold">
                     <h3>💎 إجمالي ثروتك (كل ما تملك)</h3>
                     <div class="amount" id="home-total-wealth">0 ج.م</div>
-                    <small style="color: #b7950b; font-weight: bold;">(ميزة + فوري + الداين + المتبقي من الدخل الحر)</small>
+                </div>
+
+                <div class="card green">
+                    <h3>إجمالي كل اللي دخل 📥</h3>
+                    <div class="amount" id="home-grand-in">0 ج.م</div>
+                </div>
+
+                <div class="card red">
+                    <h3>إجمالي كل المصروفات 📤</h3>
+                    <div class="amount" id="home-grand-out">0 ج.م</div>
                 </div>
 
                 <div class="card blue">
-                    <h3>المتبقي من الدخل الحر <span>💰</span></h3>
+                    <h3>المتبقي من الدخل الحر 💰</h3>
                     <div class="amount" id="home-net-income">0 ج.م</div>
-                    <small style="color: #3498db; font-size: 0.8rem;">(الدخل - المصاريف الشخصية)</small>
                 </div>
 
-                <div class="card">
-                    <h3>رصيد ميزة الحالي <span>💳</span></h3>
-                    <div class="amount" id="home-meeza-balance">0 ج.م</div>
-                </div>
-                <div class="card">
-                    <h3>رصيد فوري الحالي <span>⚡</span></h3>
-                    <div class="amount" id="home-fawry-balance">0 ج.م</div>
-                </div>
                 <div class="card green">
-                    <h3>ليك فلوس (داين) <span>📈</span></h3>
+                    <h3>فلوس ليك (الداين) 📈</h3>
                     <div class="amount" id="home-credits-total">0 ج.م</div>
                 </div>
+
                 <div class="card red">
-                    <h3>عليك فلوس (مديونية) <span>📉</span></h3>
+                    <h3>فلوس عليك (مديونية) 📉</h3>
                     <div class="amount" id="home-debts-total">0 ج.م</div>
                 </div>
+                
+                <div class="card"><h3>رصيد ميزة 💳</h3><div class="amount" id="home-meeza-balance">0</div></div>
+                <div class="card"><h3>رصيد فوري ⚡</h3><div class="amount" id="home-fawry-balance">0</div></div>
             </div>
-            
-            <div style="background: #e8f6f3; padding: 20px; border-radius: 10px; border: 1px solid #d4efdf; margin-top: 20px;">
-                <h3 style="color: #16a085; margin-top: 0;">📌 كيفية النقل بين الأجهزة (يدوياً):</h3>
-                <ol style="color: #2c3e50;">
-                    <li>من جهازك القديم، اضغط <b>"💾 حفظ نسخة بيانات"</b>.</li>
-                    <li>أرسل الملف للجهاز الجديد.</li>
-                    <li>من الجهاز الجديد، اضغط <b>"📂 استرجاع نسخة"</b> واختر الملف.</li>
-                </ol>
+        </div>
+
+        <div id="settings" class="page">
+            <h1>⚙️ الإعدادات</h1>
+            <div class="settings-group" style="flex-direction: column; align-items: stretch;">
+                <h3 style="margin-top:0">🏷️ إدارة التصنيفات</h3>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="new-cat-input" placeholder="اسم التصنيف (مثال: جيم، كورسات)" style="padding: 10px; flex:1; border-radius:5px; border:1px solid #ccc;">
+                    <button class="action-btn" onclick="addNewCategory()">إضافة</button>
+                </div>
+                <h4>التصنيفات الحالية:</h4>
+                <div id="categories-list" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+            </div>
+
+            <div class="settings-group" style="flex-direction: column; align-items: stretch;">
+                <h3 style="margin-top:0">🔐 الأمان (كلمة المرور)</h3>
+                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                    <div class="form-control"><label>رمز الحماية الجديد (4 أرقام)</label><input type="number" id="new-pin-input" placeholder="****"></div>
+                    <button class="action-btn" onclick="changePin()">تغيير الرمز</button>
+                </div>
+            </div>
+
+            <div class="settings-group" style="flex-direction: column; align-items: stretch;">
+                <h3 style="margin-top:0">💾 إدارة البيانات</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="action-btn" style="background:#34495e" onclick="toggleDarkMode()">🌗 الوضع الليلي</button>
+                    <button class="action-btn" style="background:#27ae60" onclick="exportData()">💾 حفظ نسخة احتياطية</button>
+                    <button class="action-btn" style="background:#e67e22" onclick="importData()">📂 استرجاع نسخة</button>
+                    <button class="action-btn" style="background:#c0392b" onclick="resetData()">🗑️ حذف كل البيانات</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="transfer" class="page">
+            <h1>🔀 تحويل الأموال</h1>
+            <div class="input-group" style="background: #e8f8f5; border: 1px solid #2ecc71;">
+                <div class="form-control"><label>من حساب</label><select id="transfer-from" onchange="updateTransferOptions()"><option value="cash">💰 الكاش (الدخل)</option><option value="meeza">💳 ميزة</option></select></div>
+                <div class="form-control"><label>إلى حساب</label><select id="transfer-to"></select></div>
+                <div class="form-control"><label>المبلغ</label><input type="number" id="transfer-amount"></div>
+                <button class="action-btn" onclick="executeTransfer()">نفذ التحويل</button>
             </div>
         </div>
 
         <div id="meeza" class="page">
-            <h1>💳 إدارة حساب ميزة</h1>
-            <div class="dashboard-grid">
-                <div class="card green"><h3>إجمالي الإيداع</h3><div class="amount" id="meeza-in-total">0</div></div>
-                <div class="card red"><h3>إجمالي السحب</h3><div class="amount" id="meeza-out-total">0</div></div>
-                <div class="card"><h3>المتبقي في الكارت</h3><div class="amount" id="meeza-balance">0</div></div>
-            </div>
-
+            <h1>💳 ميزة</h1>
+            <div class="dashboard-grid"><div class="card"><h3>الرصيد</h3><div class="amount" id="meeza-balance">0</div></div></div>
             <div class="input-group">
-                <div class="form-control"><label>نوع العملية</label><select id="meeza-type"><option value="in">إيداع (دخل للكارت)</option><option value="out">شراء/سحب (خرج من الكارت)</option></select></div>
-                <div class="form-control"><label>المبلغ (ج.م)</label><input type="number" id="meeza-amount" placeholder="مثال: 500"></div>
-                <div class="form-control"><label>التاريخ</label><input type="date" id="meeza-date"></div>
-                <div class="form-control"><label>تفاصيل العملية</label><input type="text" id="meeza-desc" placeholder="مثال: تحويل راتب / مشتريات"></div>
-                <button class="action-btn" onclick="addTransaction('meeza')">تسجيل العملية</button>
+                <div class="form-control"><label>النوع</label><select id="meeza-type"><option value="in">إيداع</option><option value="out">سحب</option></select></div>
+                <div class="form-control"><label>المبلغ</label><input type="number" id="meeza-amount"></div>
+                <div class="form-control"><label>التصنيف</label><select id="meeza-cat" class="dynamic-cat"></select></div>
+                <div class="form-control"><label>ملاحظة</label><input type="text" id="meeza-note"></div>
+                <button class="action-btn" onclick="addTransaction('meeza')">حفظ</button>
             </div>
             <div class="table-container"><table><thead><tr><th>الحالة</th><th>المبلغ</th><th>التاريخ</th><th>التفاصيل</th><th>حذف</th></tr></thead><tbody id="meeza-table"></tbody></table></div>
         </div>
 
         <div id="fawry" class="page">
-            <h1>⚡ حسابات ماكينة فوري</h1>
-            <div class="dashboard-grid">
-                <div class="card green"><h3>إجمالي الشحن</h3><div class="amount" id="fawry-in-total">0</div></div>
-                <div class="card red"><h3>إجمالي المدفوعات</h3><div class="amount" id="fawry-out-total">0</div></div>
-                <div class="card"><h3>رصيد الماكينة</h3><div class="amount" id="fawry-balance">0</div></div>
-            </div>
+            <h1>⚡ فوري</h1>
+            <div class="dashboard-grid"><div class="card"><h3>الرصيد</h3><div class="amount" id="fawry-balance">0</div></div></div>
             <div class="input-group">
-                <div class="form-control"><label>نوع العملية</label><select id="fawry-type"><option value="in">إضافة رصيد (شحن)</option><option value="out">عملية دفع (سحب)</option></select></div>
-                <div class="form-control"><label>المبلغ</label><input type="number" id="fawry-amount" placeholder="0"></div>
-                <div class="form-control"><label>التاريخ</label><input type="date" id="fawry-date"></div>
-                <div class="form-control"><label>تفاصيل</label><input type="text" id="fawry-desc" placeholder="مثال: شحن رصيد / دفع فاتورة"></div>
+                <div class="form-control"><label>النوع</label><select id="fawry-type"><option value="in">شحن</option><option value="out">دفع</option></select></div>
+                <div class="form-control"><label>المبلغ</label><input type="number" id="fawry-amount"></div>
+                <div class="form-control"><label>التصنيف</label><select id="fawry-cat" class="dynamic-cat"></select></div>
+                <div class="form-control"><label>ملاحظة</label><input type="text" id="fawry-note"></div>
                 <button class="action-btn" onclick="addTransaction('fawry')">حفظ</button>
             </div>
             <div class="table-container"><table><thead><tr><th>النوع</th><th>المبلغ</th><th>التاريخ</th><th>التفاصيل</th><th>حذف</th></tr></thead><tbody id="fawry-table"></tbody></table></div>
         </div>
 
         <div id="personal" class="page">
-            <h1>🎓 المصروفات (جامعة وشخصي)</h1>
-            <div class="dashboard-grid"><div class="card red"><h3>إجمالي ما صرفته</h3><div class="amount" id="personal-total">0</div></div></div>
+            <h1>🎓 مصاريف شخصية</h1>
+            <div class="budget-container">
+                <div style="display: flex; justify-content: space-between;"><h3>🎯 هدف الميزانية</h3><input type="number" id="budget-limit" placeholder="الحد الأقصى" onchange="setBudget()" style="width:100px; padding:5px;"></div>
+                <div style="background:#eee; height:20px; border-radius:10px; margin-top:10px;"><div id="budget-bar" style="height:100%; width:0%; background:#27ae60; border-radius:10px; transition:0.5s;"></div></div>
+            </div>
             <div class="input-group">
-                <div class="form-control"><label>المبلغ</label><input type="number" id="personal-amount" placeholder="0"></div>
-                <div class="form-control"><label>التاريخ</label><input type="date" id="personal-date"></div>
-                <div class="form-control"><label>فيما صرفت؟</label><input type="text" id="personal-desc" placeholder="مثال: كتب / مواصلات"></div>
+                <div class="form-control"><label>المبلغ</label><input type="number" id="personal-amount"></div>
+                <div class="form-control"><label>التصنيف</label><select id="personal-cat" class="dynamic-cat"></select></div>
+                <div class="form-control"><label>ملاحظة</label><input type="text" id="personal-note"></div>
                 <button class="action-btn" onclick="addTransaction('personal')">إضافة مصروف</button>
             </div>
-            <div class="table-container"><table><thead><tr><th>المبلغ</th><th>التاريخ</th><th>التفاصيل</th><th>حذف</th></tr></thead><tbody id="personal-table"></tbody></table></div>
+            <div class="table-container"><table><thead><tr><th>المبلغ</th><th>التاريخ</th><th>التصنيف - ملاحظة</th><th>حذف</th></tr></thead><tbody id="personal-table"></tbody></table></div>
         </div>
 
         <div id="income" class="page">
-            <h1>💰 سجل الدخل الشهري</h1>
-            <div class="dashboard-grid"><div class="card green"><h3>إجمالي الدخل</h3><div class="amount" id="income-total">0</div></div></div>
+            <h1>💰 الدخل</h1>
             <div class="input-group">
-                <div class="form-control"><label>المبلغ</label><input type="number" id="income-amount" placeholder="0"></div>
-                <div class="form-control"><label>التاريخ</label><input type="date" id="income-date"></div>
-                <div class="form-control"><label>المصدر</label><input type="text" id="income-desc" placeholder="مثال: راتب / مكافأة"></div>
+                <div class="form-control"><label>المبلغ</label><input type="number" id="income-amount"></div>
+                <div class="form-control"><label>المصدر</label><input type="text" id="income-note"></div>
                 <button class="action-btn" onclick="addTransaction('income')">إضافة دخل</button>
             </div>
             <div class="table-container"><table><thead><tr><th>المبلغ</th><th>التاريخ</th><th>المصدر</th><th>حذف</th></tr></thead><tbody id="income-table"></tbody></table></div>
         </div>
 
         <div id="debts" class="page">
-            <h1>📉 المديونية (فلوس عليك)</h1>
-            <div class="dashboard-grid"><div class="card red"><h3>إجمالي الديون</h3><div class="amount" id="debts-total">0</div></div></div>
-            <div class="input-group">
-                <div class="form-control"><label>المبلغ</label><input type="number" id="debts-amount" placeholder="0"></div>
-                <div class="form-control"><label>تاريخ الاستلاف</label><input type="date" id="debts-date"></div>
-                <div class="form-control"><label>اسم الدائن</label><input type="text" id="debts-desc" placeholder="مثال: محمد"></div>
-                <button class="action-btn" onclick="addTransaction('debts')">تسجيل دين</button>
-            </div>
-            <div class="table-container"><table><thead><tr><th>المبلغ</th><th>التاريخ</th><th>الشخص/الجهة</th><th>حذف (تم السداد)</th></tr></thead><tbody id="debts-table"></tbody></table></div>
+            <h1>📉 المديونية</h1>
+            <div class="input-group"><div class="form-control"><label>المبلغ</label><input type="number" id="debts-amount"></div><div class="form-control"><label>الدائن</label><input type="text" id="debts-note"></div><button class="action-btn" onclick="addTransaction('debts')">تسجيل</button></div>
+            <div class="table-container"><table><thead><tr><th>المبلغ</th><th>التاريخ</th><th>الدائن</th><th>حذف</th></tr></thead><tbody id="debts-table"></tbody></table></div>
         </div>
 
         <div id="credits" class="page">
-            <h1>📈 الداين (فلوس ليك)</h1>
-            <div class="dashboard-grid"><div class="card green"><h3>إجمالي المستحقات</h3><div class="amount" id="credits-total">0</div></div></div>
-            <div class="input-group">
-                <div class="form-control"><label>المبلغ</label><input type="number" id="credits-amount" placeholder="0"></div>
-                <div class="form-control"><label>تاريخ الاستحقاق</label><input type="date" id="credits-date"></div>
-                <div class="form-control"><label>اسم المدين</label><input type="text" id="credits-desc" placeholder="مثال: صديق"></div>
-                <button class="action-btn" onclick="addTransaction('credits')">تسجيل مستحق</button>
-            </div>
-            <div class="table-container"><table><thead><tr><th>المبلغ</th><th>التاريخ</th><th>اسم الشخص</th><th>حذف (تم التحصيل)</th></tr></thead><tbody id="credits-table"></tbody></table></div>
-        </div>
-
-        <div id="summary" class="page">
-            <h1>📊 التقرير المالي الشامل</h1>
-            
-            <h3 style="margin-top: 30px; color: var(--accent-color);">🔹 موقف الدخل الشخصي</h3>
-            <div class="dashboard-grid">
-                <div class="card green">
-                    <h3>إجمالي الدخل</h3>
-                    <div class="amount" id="sum-income">0</div>
-                </div>
-                <div class="card red">
-                    <h3>المصروفات الشخصية</h3>
-                    <div class="amount" id="sum-personal">0</div>
-                </div>
-                <div class="card blue">
-                    <h3>المتبقي من الدخل الحر</h3>
-                    <div class="amount" id="net-income-personal">0</div>
-                    <small style="color: #7f8c8d;">(الدخل - المصروفات) فقط</small>
-                </div>
-            </div>
-
-            <h3 style="margin-top: 30px; border-right: 5px solid var(--accent-color); padding-right: 10px;">🔸 أرصدة العمل (ميزة وفوري)</h3>
-            <div class="dashboard-grid">
-                <div class="card"><h3>رصيد ميزة الحالي</h3><div class="amount" id="sum-meeza-balance">0</div></div>
-                <div class="card"><h3>رصيد فوري الحالي</h3><div class="amount" id="sum-fawry-balance">0</div></div>
-            </div>
-            
-            <h3 style="margin-top: 30px; border-right: 5px solid var(--danger-color); padding-right: 10px;">🔸 الديون والمستحقات</h3>
-            <div class="dashboard-grid">
-                <div class="card red"><h3>ديون عليك</h3><div class="amount" id="sum-debts">0</div></div>
-                <div class="card green"><h3>فلوس ليك</h3><div class="amount" id="sum-credits">0</div></div>
-            </div>
+            <h1>📈 الداين</h1>
+            <div class="input-group"><div class="form-control"><label>المبلغ</label><input type="number" id="credits-amount"></div><div class="form-control"><label>المدين</label><input type="text" id="credits-note"></div><button class="action-btn" onclick="addTransaction('credits')">تسجيل</button></div>
+            <div class="table-container"><table><thead><tr><th>المبلغ</th><th>التاريخ</th><th>المدين</th><th>حذف</th></tr></thead><tbody id="credits-table"></tbody></table></div>
         </div>
 
     </div>
 
     <script>
         let appData = { meeza: [], fawry: [], personal: [], income: [], debts: [], credits: [] };
+        let settings = { 
+            budget: 0, 
+            pin: '0000', 
+            darkMode: false,
+            categories: ['طعام 🍔', 'مواصلات 🚌', 'فواتير 📱', 'جامعة 📚', 'تحويلات 🔀', 'أخرى'] 
+        };
+        let currentPin = '';
 
         window.onload = function() {
-            if(localStorage.getItem('omarFinancePro')) {
-                let savedData = JSON.parse(localStorage.getItem('omarFinancePro'));
-                appData = { ...appData, ...savedData };
-            }
+            if(localStorage.getItem('omarFinancePro')) appData = { ...appData, ...JSON.parse(localStorage.getItem('omarFinancePro')) };
+            if(localStorage.getItem('omarSettings')) settings = { ...settings, ...JSON.parse(localStorage.getItem('omarSettings')) };
+
+            if(settings.darkMode) document.body.classList.add('dark-mode');
+            document.getElementById('budget-limit').value = settings.budget;
+
+            populateCategories();
+            updateTransferOptions();
+
+            if(sessionStorage.getItem('unlocked')) document.getElementById('lock-screen').style.display = 'none';
+            
             updateAllViews();
         };
 
+        function populateCategories() {
+            document.querySelectorAll('.dynamic-cat').forEach(select => {
+                select.innerHTML = '';
+                settings.categories.forEach(cat => {
+                    let option = document.createElement('option');
+                    option.value = cat;
+                    option.text = cat;
+                    select.appendChild(option);
+                });
+            });
+            let listDiv = document.getElementById('categories-list');
+            listDiv.innerHTML = '';
+            settings.categories.forEach(cat => {
+                let tag = document.createElement('span');
+                tag.className = 'tag';
+                tag.innerHTML = `${cat} <span style="cursor:pointer; margin-right:5px;" onclick="removeCategory('${cat}')">❌</span>`;
+                listDiv.appendChild(tag);
+            });
+        }
+
+        function addNewCategory() {
+            let input = document.getElementById('new-cat-input');
+            let newCat = input.value.trim();
+            if(newCat && !settings.categories.includes(newCat)) {
+                settings.categories.push(newCat);
+                saveSettings(); populateCategories();
+                input.value = ''; alert('تمت الإضافة!');
+            }
+        }
+
+        function removeCategory(cat) {
+            if(confirm('حذف هذا التصنيف؟')) {
+                settings.categories = settings.categories.filter(c => c !== cat);
+                saveSettings(); populateCategories();
+            }
+        }
+
+        function changePin() {
+            let input = document.getElementById('new-pin-input');
+            let newPin = input.value;
+            if(newPin.length === 4) {
+                settings.pin = newPin; saveSettings();
+                input.value = ''; alert('تم تغيير الرمز!');
+            } else { alert('يجب أن يكون 4 أرقام'); }
+        }
+
+        function enterPin(num) { if(currentPin.length < 4) { currentPin += num; updatePinDisplay(); } }
+        function resetPin() { currentPin = ''; updatePinDisplay(); }
+        function updatePinDisplay() { document.getElementById('pin-display').innerText = '*'.repeat(currentPin.length); }
+        function checkPin() {
+            if(currentPin === settings.pin) {
+                document.getElementById('lock-screen').style.display = 'none';
+                sessionStorage.setItem('unlocked', 'true');
+            } else { alert('رمز خطأ!'); currentPin = ''; updatePinDisplay(); }
+        }
+
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
-            let activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => btn.getAttribute('onclick').includes(pageId));
-            if(activeBtn) activeBtn.classList.add('active');
             updateAllViews();
         }
 
-        function addTransaction(category) {
-            let amountInput = document.getElementById(`${category}-amount`);
-            let descInput = document.getElementById(`${category}-desc`);
-            let dateInput = document.getElementById(`${category}-date`);
-            let typeInput = document.getElementById(`${category}-type`); 
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            settings.darkMode = document.body.classList.contains('dark-mode');
+            saveSettings();
+        }
 
-            let amount = parseFloat(amountInput.value);
-            let desc = descInput.value;
-            let type = typeInput ? typeInput.value : 'single';
-            
-            let displayDate = dateInput.value ? new Date(dateInput.value).toLocaleDateString('ar-EG') : new Date().toLocaleDateString('ar-EG');
+        function setBudget() {
+            settings.budget = parseFloat(document.getElementById('budget-limit').value);
+            saveSettings(); updateAllViews();
+        }
 
-            if (isNaN(amount) || amount <= 0 || desc.trim() === "") {
-                alert('الرجاء إدخال المبلغ والوصف بشكل صحيح');
-                return;
+        function saveSettings() { localStorage.setItem('omarSettings', JSON.stringify(settings)); }
+
+        function addTransaction(cat, manualData = null) {
+            let amount, desc, type, date = new Date().toLocaleDateString('ar-EG');
+            if(manualData) {
+                amount = manualData.amount; desc = manualData.desc; type = manualData.type;
+            } else {
+                let amtInput = document.getElementById(`${cat}-amount`);
+                let noteInput = document.getElementById(`${cat}-note`) || document.getElementById(`${cat}-desc`);
+                let catInput = document.getElementById(`${cat}-cat`);
+                let typeInput = document.getElementById(`${cat}-type`);
+
+                amount = parseFloat(amtInput.value);
+                let note = noteInput ? noteInput.value : '';
+                let category = catInput ? catInput.value : '';
+                desc = category ? `${category} - ${note}` : note;
+                type = typeInput ? typeInput.value : 'single';
+
+                if (isNaN(amount) || amount <= 0) { alert('ادخل مبلغ صحيح'); return; }
+                amtInput.value = ''; if(noteInput) noteInput.value = '';
             }
-
-            appData[category].push({ id: Date.now(), amount: amount, desc: desc, type: type, date: displayDate });
-            saveData();
+            appData[cat].push({ id: Date.now(), amount, desc, type, date });
+            localStorage.setItem('omarFinancePro', JSON.stringify(appData));
             updateAllViews();
-            
-            amountInput.value = ''; descInput.value = ''; dateInput.value = '';
         }
 
-        function deleteTransaction(category, id) {
-            if(confirm('هل أنت متأكد من الحذف؟')) {
-                appData[category] = appData[category].filter(item => item.id !== id);
-                saveData();
+        function deleteTransaction(cat, id) {
+            if(confirm('حذف؟')) {
+                appData[cat] = appData[cat].filter(item => item.id !== id);
+                localStorage.setItem('omarFinancePro', JSON.stringify(appData));
                 updateAllViews();
             }
         }
 
-        function saveData() {
-            localStorage.setItem('omarFinancePro', JSON.stringify(appData));
+        function updateTransferOptions() {
+            let from = document.getElementById('transfer-from').value;
+            let to = document.getElementById('transfer-to');
+            to.innerHTML = '';
+            if(from === 'cash') to.innerHTML += '<option value="meeza">💳 ميزة</option>';
+            else if(from === 'meeza') to.innerHTML += '<option value="fawry">⚡ فوري</option>';
         }
 
-        // --- ميزات النسخ الاحتياطي والاسترجاع ---
-        function exportData() {
-            const dataStr = JSON.stringify(appData);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            const exportFileDefaultName = 'omar_finance_backup.json';
+        function executeTransfer() {
+            let from = document.getElementById('transfer-from').value;
+            let to = document.getElementById('transfer-to').value;
+            let amount = parseFloat(document.getElementById('transfer-amount').value);
+            if(isNaN(amount) || amount <= 0) return;
 
-            let linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-        }
+            if(from === 'cash') addTransaction('personal', { amount, desc: `تحويل إلى ${to}`, type: 'single' });
+            else if (from === 'meeza') addTransaction('meeza', { amount, desc: `تحويل إلى ${to}`, type: 'out' });
 
-        function importData() {
-            let input = document.createElement('input');
-            input.type = 'file';
-            input.onchange = e => {
-                let file = e.target.files[0];
-                let reader = new FileReader();
-                reader.readAsText(file,'UTF-8');
-                reader.onload = readerEvent => {
-                    try {
-                        let content = readerEvent.target.result;
-                        let parsedData = JSON.parse(content);
-                        if(confirm('سيتم استبدال البيانات الحالية بالبيانات الموجودة في الملف. هل أنت موافق؟')) {
-                            localStorage.setItem('omarFinancePro', JSON.stringify(parsedData));
-                            location.reload();
-                        }
-                    } catch (error) {
-                        alert('حدث خطأ! الملف غير صالح أو تالف.');
-                    }
-                }
-            }
-            input.click();
-        }
+            if(to === 'meeza') addTransaction('meeza', { amount, desc: `تحويل من ${from}`, type: 'in' });
+            else if (to === 'fawry') addTransaction('fawry', { amount, desc: `تحويل من ${from}`, type: 'in' });
 
-        function resetData() {
-            if(confirm('⚠ تحذير هام: هل أنت متأكد أنك تريد حذف كل البيانات والبدء من الصفر؟')) {
-                localStorage.removeItem('omarFinancePro');
-                location.reload();
-            }
+            document.getElementById('transfer-amount').value = '';
+            alert('تم التحويل!');
         }
-        // ----------------------------------------
 
         function updateAllViews() {
-            updateCategoryView('meeza');
-            updateCategoryView('fawry');
-            updateSimpleView('personal');
-            updateSimpleView('income');
-            updateSimpleView('debts');    
-            updateSimpleView('credits');  
+            ['meeza', 'fawry', 'personal', 'income', 'debts', 'credits'].forEach(cat => updateCatView(cat));
             updateSummary();
         }
 
-        function updateCategoryView(cat) {
+        function updateCatView(cat) {
+            let tbody = document.getElementById(`${cat}-table`);
+            if(!tbody) return;
+            tbody.innerHTML = '';
             let totalIn = 0, totalOut = 0;
-            let tbody = document.getElementById(`${cat}-table`);
-            tbody.innerHTML = '';
             [...appData[cat]].reverse().forEach(item => {
-                if (item.type === 'in') totalIn += item.amount; else totalOut += item.amount;
-                let typeLabel = item.type === 'in' ? '<span style="color:var(--success-color); font-weight:bold;">+ إيداع</span>' : '<span style="color:var(--danger-color); font-weight:bold;">- سحب</span>';
-                let row = `<tr><td>${typeLabel}</td><td style="font-weight:bold; font-size:1.1rem;">${item.amount.toLocaleString()}</td><td style="color:var(--text-secondary); font-size:0.9rem;">${item.date}</td><td>${item.desc}</td><td><button class="delete-btn" onclick="deleteTransaction('${cat}', ${item.id})">🗑</button></td></tr>`;
-                tbody.innerHTML += row;
+                if(item.type === 'in') totalIn += item.amount; else if(item.type === 'out') totalOut += item.amount;
+                tbody.innerHTML += `<tr><td>${item.type==='in'?'<span style="color:green">+</span>':item.type==='out'?'<span style="color:red">-</span>':''} ${item.amount}</td><td>${item.date}</td><td>${item.desc}</td><td><button class="delete-btn" onclick="deleteTransaction('${cat}', ${item.id})">x</button></td></tr>`;
             });
-            document.getElementById(`${cat}-in-total`).innerText = totalIn.toLocaleString();
-            document.getElementById(`${cat}-out-total`).innerText = totalOut.toLocaleString();
-            document.getElementById(`${cat}-balance`).innerText = (totalIn - totalOut).toLocaleString();
-            if(document.getElementById(`home-${cat}-balance`)) document.getElementById(`home-${cat}-balance`).innerText = (totalIn - totalOut).toLocaleString() + " ج.م";
-        }
-
-        function updateSimpleView(cat) {
-            let total = 0;
-            let tbody = document.getElementById(`${cat}-table`);
-            tbody.innerHTML = '';
-            [...appData[cat]].reverse().forEach(item => {
-                total += item.amount;
-                let row = `<tr><td style="font-weight:bold;">${item.amount.toLocaleString()}</td><td style="color:var(--text-secondary); font-size:0.9rem;">${item.date}</td><td>${item.desc}</td><td><button class="delete-btn" onclick="deleteTransaction('${cat}', ${item.id})">🗑</button></td></tr>`;
-                tbody.innerHTML += row;
-            });
-            document.getElementById(`${cat}-total`).innerText = total.toLocaleString() + " ج.م";
-            if(cat === 'debts') document.getElementById('home-debts-total').innerText = total.toLocaleString() + " ج.م";
-            if(cat === 'credits') document.getElementById('home-credits-total').innerText = total.toLocaleString() + " ج.م";
+            let balance = totalIn - totalOut;
+            if(document.getElementById(`${cat}-balance`)) document.getElementById(`${cat}-balance`).innerText = balance;
         }
 
         function updateSummary() {
-            let meezaIn = appData.meeza.filter(i => i.type == 'in').reduce((a, b) => a + b.amount, 0);
-            let meezaOut = appData.meeza.filter(i => i.type == 'out').reduce((a, b) => a + b.amount, 0);
-            
-            let fawryIn = appData.fawry.filter(i => i.type == 'in').reduce((a, b) => a + b.amount, 0);
-            let fawryOut = appData.fawry.filter(i => i.type == 'out').reduce((a, b) => a + b.amount, 0);
-            
-            let incomeTotal = appData.income.reduce((a, b) => a + b.amount, 0);
-            let personalTotal = appData.personal.reduce((a, b) => a + b.amount, 0);
-            
-            let debtsTotal = appData.debts.reduce((a, b) => a + b.amount, 0);
-            let creditsTotal = appData.credits.reduce((a, b) => a + b.amount, 0);
+            let meezaBal = sum(appData.meeza, 'in') - sum(appData.meeza, 'out');
+            let fawryBal = sum(appData.fawry, 'in') - sum(appData.fawry, 'out');
+            let income = appData.income.reduce((a,b)=>a+b.amount,0);
+            let personal = appData.personal.reduce((a,b)=>a+b.amount,0);
+            let debts = appData.debts.reduce((a,b)=>a+b.amount,0);
+            let credits = appData.credits.reduce((a,b)=>a+b.amount,0);
+            let netIncome = income - personal;
 
-            // الحسابات الأساسية
-            let netIncomePersonal = incomeTotal - personalTotal;
-            let meezaBalance = meezaIn - meezaOut;
-            let fawryBalance = fawryIn - fawryOut;
+            // الحسابات الكلية
+            let grandIn = income + sum(appData.meeza, 'in') + sum(appData.fawry, 'in');
+            let grandOut = personal + sum(appData.meeza, 'out') + sum(appData.fawry, 'out');
+            let wealth = meezaBal + fawryBal + credits + netIncome;
 
-            // حساب الثروة الكلية (طلبك الجديد)
-            // ميزة + فوري + الداين + المتبقي من الدخل الحر
-            let grandTotalWealth = meezaBalance + fawryBalance + creditsTotal + netIncomePersonal;
+            setTxt('home-total-wealth', wealth);
+            setTxt('home-grand-in', grandIn);
+            setTxt('home-grand-out', grandOut);
+            setTxt('home-net-income', netIncome);
+            setTxt('home-meeza-balance', meezaBal);
+            setTxt('home-fawry-balance', fawryBal);
+            setTxt('home-credits-total', credits);
+            setTxt('home-debts-total', debts);
 
-
-            // تحديث الواجهة
-            document.getElementById('sum-income').innerText = incomeTotal.toLocaleString();
-            document.getElementById('sum-personal').innerText = personalTotal.toLocaleString();
-            document.getElementById('net-income-personal').innerText = netIncomePersonal.toLocaleString() + " ج.م";
-            
-            if(document.getElementById('home-net-income')) {
-                document.getElementById('home-net-income').innerText = netIncomePersonal.toLocaleString() + " ج.م";
+            if(settings.budget > 0) {
+                let percent = (personal / settings.budget) * 100;
+                document.getElementById('budget-bar').style.width = Math.min(percent, 100) + '%';
             }
-            
-            // تحديث الكارت الذهبي الجديد
-            if(document.getElementById('home-total-wealth')) {
-                document.getElementById('home-total-wealth').innerText = grandTotalWealth.toLocaleString() + " ج.م";
-            }
-            
-            document.getElementById('sum-meeza-balance').innerText = meezaBalance.toLocaleString() + " ج.م";
-            document.getElementById('sum-fawry-balance').innerText = fawryBalance.toLocaleString() + " ج.م";
-            
-            document.getElementById('sum-debts').innerText = debtsTotal.toLocaleString();
-            document.getElementById('sum-credits').innerText = creditsTotal.toLocaleString();
         }
+
+        function sum(arr, type) { return arr.filter(i => i.type === type).reduce((a, b) => a + b.amount, 0); }
+        function setTxt(id, val) { if(document.getElementById(id)) document.getElementById(id).innerText = val.toLocaleString() + " ج.م"; }
+        
+        function exportData() {
+            let dataStr = JSON.stringify({ data: appData, settings: settings });
+            let link = document.createElement('a');
+            link.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+            link.download = 'omar_backup.json';
+            link.click();
+        }
+        function importData() {
+            let input = document.createElement('input'); input.type = 'file';
+            input.onchange = e => {
+                let reader = new FileReader();
+                reader.onload = ev => {
+                    let imported = JSON.parse(ev.target.result);
+                    appData = imported.data; settings = imported.settings;
+                    localStorage.setItem('omarFinancePro', JSON.stringify(appData));
+                    localStorage.setItem('omarSettings', JSON.stringify(settings));
+                    location.reload();
+                };
+                reader.readAsText(e.target.files[0]);
+            };
+            input.click();
+        }
+        function resetData() { if(confirm('تصفير كل شيء؟')) { localStorage.clear(); location.reload(); } }
     </script>
 </body>
 </html>
