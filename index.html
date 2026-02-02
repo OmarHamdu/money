@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>نظام عمر المالي - Final</title>
+    <title>نظام عمر المالي - Final Fix</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -28,7 +28,7 @@
             background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            overflow-x: hidden; /* منع السحب الجانبي للصفحة بالكامل */
+            overflow-x: hidden;
             min-height: 100vh;
         }
 
@@ -59,7 +59,7 @@
         /* --- Sidebar (Desktop) --- */
         .sidebar {
             width: 260px;
-            padding: 20px; /* تصغير البادينج لزيادة المساحة الداخلية */
+            padding: 20px;
             height: 100vh;
             position: fixed;
             top: 0; right: 0;
@@ -68,18 +68,13 @@
             background: rgba(10,10,10,0.95);
             backdrop-filter: blur(10px);
             border-left: 1px solid #222;
-            
-            /* --- الإصلاح الرئيسي: تفعيل التمرير --- */
-            overflow-y: auto; 
+            overflow-y: auto; /* تفعيل السكرول */
             overflow-x: hidden;
-            scroll-behavior: smooth;
         }
         
-        /* تنسيق شريط التمرير ليكون جميلاً */
         .sidebar::-webkit-scrollbar { width: 6px; }
         .sidebar::-webkit-scrollbar-track { background: transparent; }
         .sidebar::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        .sidebar::-webkit-scrollbar-thumb:hover { background: #555; }
 
         .sidebar h2 { text-align: center; color: var(--primary); margin-bottom: 20px; }
         
@@ -88,7 +83,7 @@
             background: transparent; border: none; color: #aaa; font-size: 1rem;
             cursor: pointer; border-radius: 10px; margin-bottom: 5px;
             transition: all 0.2s;
-            flex-shrink: 0; /* منع انضغاط الزر عند التمرير */
+            flex-shrink: 0;
         }
         .nav-btn:hover { background: rgba(255,255,255,0.05); color: white; }
         .nav-btn.active { background: rgba(0, 243, 255, 0.15); color: var(--primary); border-right: 3px solid var(--primary); }
@@ -109,11 +104,10 @@
         .mobile-title { font-weight: 800; color: var(--primary); font-size: 1.2rem; }
         .hamburger-btn {
             background: none; border: none; color: white; font-size: 2rem; cursor: pointer;
-            display: none; /* مخفي في الديسك توب */
-            padding: 5px;
+            display: none; padding: 5px;
         }
 
-        /* --- Mobile Drawer (Menu) --- */
+        /* --- Mobile Drawer --- */
         .drawer-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
             background: rgba(0,0,0,0.7);
@@ -132,8 +126,6 @@
             padding: 20px;
             border-left: 1px solid var(--glass-border);
             display: flex; flex-direction: column;
-            
-            /* تفعيل التمرير للقائمة الجانبية في الموبايل أيضاً */
             overflow-y: auto;
         }
         .drawer-menu.active { transform: translateX(0); }
@@ -147,8 +139,8 @@
             margin-right: 0; 
             width: 100%;
             padding: 20px;
-            padding-bottom: 50px; /* مساحة بسيطة في الأسفل */
-            padding-top: var(--header-height); /* مساحة للهيدر في الموبايل */
+            padding-bottom: 50px;
+            padding-top: var(--header-height);
             transition: margin-right 0.3s ease;
         }
 
@@ -198,11 +190,10 @@
         /* --- Toast --- */
         #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; width: 90%; text-align: center; }
         .toast { display: inline-block; background: #222; color: #fff; padding: 10px 20px; border-radius: 20px; margin-bottom: 10px; border: 1px solid #444; animation: slideDown 0.3s; }
+        .toast.error { border-color: #ff0055; color: #ff0055; }
         @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* =========================================
-           Desktop Styles
-           ========================================= */
+        /* Desktop */
         @media (min-width: 769px) {
             .sidebar { display: flex; }
             .mobile-header, .hamburger-btn { display: none !important; }
@@ -210,28 +201,16 @@
             .dashboard-grid { grid-template-columns: repeat(3, 1fr); }
         }
 
-        /* =========================================
-           Mobile Styles
-           ========================================= */
+        /* Mobile */
         @media (max-width: 768px) {
             .sidebar { display: none !important; }
             .mobile-header { display: flex !important; }
             .hamburger-btn { display: block !important; }
-            
-            .main-content { 
-                width: 100%; 
-                margin-right: 0; 
-                padding: 15px; 
-                padding-top: 80px; /* مسافة للهيدر */
-                padding-bottom: 40px;
-            }
-
+            .main-content { width: 100%; margin-right: 0; padding: 15px; padding-top: 80px; }
             h1 { font-size: 1.5rem; }
             .dashboard-grid { grid-template-columns: 1fr; }
             .input-group { grid-template-columns: 1fr; }
-            .action-btn { width: 100%; }
         }
-
     </style>
 </head>
 <body>
@@ -248,7 +227,7 @@
             <button class="hamburger-btn" onclick="toggleMobileMenu()">☰</button>
         </div>
 
-        <!-- Mobile Drawer Overlay & Menu -->
+        <!-- Mobile Drawer -->
         <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileMenu()"></div>
         <div class="drawer-menu" id="drawerMenu">
             <div class="drawer-header">
@@ -264,7 +243,6 @@
             <button class="nav-btn" onclick="navigateMobile('debts')"><span>📉</span> ديون</button>
             <button class="nav-btn" onclick="navigateMobile('credits')"><span>📈</span> داين</button>
             <button class="nav-btn" onclick="navigateMobile('settings')"><span>⚙️</span> إعدادات</button>
-            
             <div style="margin-top:20px; border-top:1px solid #333; padding-top:10px; flex-shrink:0;">
                 <button class="nav-btn" onclick="exportData()">💾 حفظ نسخة</button>
                 <button class="nav-btn" onclick="importData()">📂 استرجاع</button>
@@ -284,7 +262,6 @@
             <button class="nav-btn" onclick="navigate('debts')"><span>📉</span> ديون</button>
             <button class="nav-btn" onclick="navigate('credits')"><span>📈</span> داين</button>
             <button class="nav-btn" onclick="navigate('settings')"><span>⚙️</span> إعدادات</button>
-            
             <div style="margin-top:20px; border-top:1px solid #333; padding-top:10px">
                 <button class="nav-btn" onclick="exportData()">💾 حفظ نسخة</button>
                 <button class="nav-btn" onclick="importData()">📂 استرجاع</button>
@@ -317,7 +294,7 @@
                 <div class="glass-panel input-group">
                     <div class="form-control"><label>من</label><select id="transfer-from" onchange="updateTransferOptions()"><option value="cash">كاش</option><option value="meeza">ميزة</option></select></div>
                     <div class="form-control"><label>إلى</label><select id="transfer-to"></select></div>
-                    <div class="form-control"><label>المبلغ</label><input type="number" id="transfer-amount"></div>
+                    <div class="form-control"><label>المبلغ</label><input type="number" id="transfer-amount" placeholder="المبلغ"></div>
                     <button class="action-btn" onclick="executeTransfer()">تحويل</button>
                 </div>
             </div>
@@ -328,9 +305,9 @@
                 <div class="card glass-panel" style="margin-bottom:15px"><h3>الرصيد</h3><div class="amount" id="meeza-balance">0</div></div>
                 <div class="glass-panel input-group">
                     <div class="form-control"><label>نوع</label><select id="meeza-type"><option value="in">إيداع</option><option value="out">سحب</option></select></div>
-                    <div class="form-control"><label>مبلغ</label><input type="number" id="meeza-amount"></div>
+                    <div class="form-control"><label>مبلغ</label><input type="number" id="meeza-amount" placeholder="المبلغ"></div>
                     <div class="form-control"><label>تصنيف</label><select id="meeza-cat" class="dynamic-cat"></select></div>
-                    <div class="form-control"><label>ملاحظة</label><input type="text" id="meeza-note"></div>
+                    <div class="form-control"><label>ملاحظة</label><input type="text" id="meeza-note" placeholder="تفاصيل"></div>
                     <button class="action-btn" onclick="addTransaction('meeza')">حفظ</button>
                 </div>
                 <div class="glass-panel table-container"><table><thead><tr><th>حالة</th><th>مبلغ</th><th>تفاصيل</th><th>حذف</th></tr></thead><tbody id="meeza-table"></tbody></table></div>
@@ -342,9 +319,9 @@
                 <div class="card glass-panel" style="margin-bottom:15px"><h3>الرصيد</h3><div class="amount" id="fawry-balance">0</div></div>
                 <div class="glass-panel input-group">
                     <div class="form-control"><label>نوع</label><select id="fawry-type"><option value="in">شحن</option><option value="out">دفع</option></select></div>
-                    <div class="form-control"><label>مبلغ</label><input type="number" id="fawry-amount"></div>
+                    <div class="form-control"><label>مبلغ</label><input type="number" id="fawry-amount" placeholder="المبلغ"></div>
                     <div class="form-control"><label>تصنيف</label><select id="fawry-cat" class="dynamic-cat"></select></div>
-                    <div class="form-control"><label>ملاحظة</label><input type="text" id="fawry-note"></div>
+                    <div class="form-control"><label>ملاحظة</label><input type="text" id="fawry-note" placeholder="تفاصيل"></div>
                     <button class="action-btn" onclick="addTransaction('fawry')">حفظ</button>
                 </div>
                 <div class="glass-panel table-container"><table><thead><tr><th>حالة</th><th>مبلغ</th><th>تفاصيل</th><th>حذف</th></tr></thead><tbody id="fawry-table"></tbody></table></div>
@@ -358,9 +335,9 @@
                     <div style="height:6px; background:#333; margin-top:10px; border-radius:3px"><div id="budget-bar" style="height:100%; background:var(--primary); width:0%"></div></div>
                 </div>
                 <div class="glass-panel input-group">
-                    <div class="form-control"><label>مبلغ</label><input type="number" id="personal-amount"></div>
+                    <div class="form-control"><label>مبلغ</label><input type="number" id="personal-amount" placeholder="المبلغ"></div>
                     <div class="form-control"><label>تصنيف</label><select id="personal-cat" class="dynamic-cat"></select></div>
-                    <div class="form-control"><label>ملاحظة</label><input type="text" id="personal-note"></div>
+                    <div class="form-control"><label>ملاحظة</label><input type="text" id="personal-note" placeholder="تفاصيل"></div>
                     <button class="action-btn" onclick="addTransaction('personal')">إضافة</button>
                 </div>
                 <div class="glass-panel table-container"><table><thead><tr><th>مبلغ</th><th>تفاصيل</th><th>حذف</th></tr></thead><tbody id="personal-table"></tbody></table></div>
@@ -370,8 +347,8 @@
             <div id="income" class="page">
                 <h1>الدخل 💰</h1>
                 <div class="glass-panel input-group">
-                    <div class="form-control"><label>مبلغ</label><input type="number" id="income-amount"></div>
-                    <div class="form-control"><label>مصدر</label><input type="text" id="income-note"></div>
+                    <div class="form-control"><label>مبلغ</label><input type="number" id="income-amount" placeholder="المبلغ"></div>
+                    <div class="form-control"><label>مصدر</label><input type="text" id="income-note" placeholder="المصدر"></div>
                     <button class="action-btn" onclick="addTransaction('income')">إضافة</button>
                 </div>
                 <div class="glass-panel table-container"><table><thead><tr><th>مبلغ</th><th>مصدر</th><th>حذف</th></tr></thead><tbody id="income-table"></tbody></table></div>
@@ -380,14 +357,14 @@
             <!-- Debts -->
             <div id="debts" class="page">
                 <h1>الديون 📉</h1>
-                <div class="glass-panel input-group"><div class="form-control"><label>مبلغ</label><input type="number" id="debts-amount"></div><div class="form-control"><label>الدائن</label><input type="text" id="debts-note"></div><button class="action-btn" onclick="addTransaction('debts')">تسجيل</button></div>
+                <div class="glass-panel input-group"><div class="form-control"><label>مبلغ</label><input type="number" id="debts-amount" placeholder="المبلغ"></div><div class="form-control"><label>الدائن</label><input type="text" id="debts-note" placeholder="الشخص"></div><button class="action-btn" onclick="addTransaction('debts')">تسجيل</button></div>
                 <div class="glass-panel table-container"><table><thead><tr><th>مبلغ</th><th>الدائن</th><th>حذف</th></tr></thead><tbody id="debts-table"></tbody></table></div>
             </div>
 
             <!-- Credits -->
             <div id="credits" class="page">
                 <h1>الداين 📈</h1>
-                <div class="glass-panel input-group"><div class="form-control"><label>مبلغ</label><input type="number" id="credits-amount"></div><div class="form-control"><label>المدين</label><input type="text" id="credits-note"></div><button class="action-btn" onclick="addTransaction('credits')">تسجيل</button></div>
+                <div class="glass-panel input-group"><div class="form-control"><label>مبلغ</label><input type="number" id="credits-amount" placeholder="المبلغ"></div><div class="form-control"><label>المدين</label><input type="text" id="credits-note" placeholder="الشخص"></div><button class="action-btn" onclick="addTransaction('credits')">تسجيل</button></div>
                 <div class="glass-panel table-container"><table><thead><tr><th>مبلغ</th><th>المدين</th><th>حذف</th></tr></thead><tbody id="credits-table"></tbody></table></div>
             </div>
 
@@ -396,7 +373,7 @@
                 <h1>إعدادات ⚙️</h1>
                 <div class="glass-panel" style="padding:15px">
                     <h3>التصنيفات</h3>
-                    <div style="display:flex; gap:10px; margin:10px 0"><input type="text" id="new-cat-input" placeholder="جديد" style="flex:1; padding:10px; border-radius:8px; border:1px solid #444; background:#000; color:#fff"><button class="action-btn" style="width:auto" onclick="addNewCategory()">+</button></div>
+                    <div style="display:flex; gap:10px; margin:10px 0"><input type="text" id="new-cat-input" placeholder="اسم جديد" style="flex:1; padding:10px; border-radius:8px; border:1px solid #444; background:#000; color:#fff"><button class="action-btn" style="width:auto" onclick="addNewCategory()">+</button></div>
                     <div id="categories-list" style="display:flex; flex-wrap:wrap; gap:5px"></div>
                 </div>
             </div>
@@ -472,6 +449,54 @@
             navigate(id);
         }
 
+        // --- الإصلاح الرئيسي: إعادة تسمية الدالة لتطابق HTML ---
+        function addTransaction(cat, manualData = null) {
+            let amount, desc, type;
+            
+            if(manualData) {
+                amount = manualData.amount;
+                desc = manualData.desc;
+                type = manualData.type;
+            } else {
+                // جلب العناصر
+                let amtInput = document.getElementById(cat + '-amount');
+                let noteInput = document.getElementById(cat + '-note');
+                let typeInput = document.getElementById(cat + '-type');
+                let catInput = document.getElementById(cat + '-cat');
+
+                // التحقق من المبلغ
+                if(!amtInput) return;
+                amount = parseFloat(amtInput.value);
+                
+                // جمع البيانات
+                let category = catInput ? catInput.value : '';
+                let note = noteInput ? noteInput.value : '';
+                desc = category ? `${category} - ${note}` : note;
+                type = typeInput ? typeInput.value : 'single';
+
+                // التحقق من الصحة
+                if(isNaN(amount) || amount <= 0) {
+                    showToast('الرجاء إدخال مبلغ صحيح', 'error');
+                    return;
+                }
+
+                // تفريغ الحقول
+                amtInput.value = '';
+                if(noteInput) noteInput.value = '';
+            }
+
+            // الحفظ
+            data[cat].push({id:Date.now(), amount:amount, desc, type, date: new Date().toLocaleDateString('ar-EG')});
+            localStorage.data = JSON.stringify(data);
+            updateViews();
+            
+            if(!manualData) showToast('تمت العملية بنجاح');
+        }
+
+        function del(cat, id) {
+            if(confirm('حذف؟')) { data[cat] = data[cat].filter(x=>x.id!==id); localStorage.data=JSON.stringify(data); updateViews(); showToast('تم الحذف'); }
+        }
+
         function updateViews() {
             ['meeza','fawry','personal','income','debts','credits'].forEach(u=>upd(u));
             
@@ -512,26 +537,6 @@
             let b = document.getElementById(cat+'-balance'); if(b) b.innerText = bal;
         }
 
-        function add(cat, man=null) {
-            let amt, desc, type;
-            if(man) { amt=man.amt; desc=man.desc; type=man.type; }
-            else {
-                amt = parseFloat(document.getElementById(cat+'-amount').value);
-                desc = document.getElementById(cat+'-note')?.value || '';
-                type = document.getElementById(cat+'-type')?.value || 'single';
-                if(isNaN(amt)) return;
-                document.getElementById(cat+'-amount').value='';
-                if(document.getElementById(cat+'-note')) document.getElementById(cat+'-note').value='';
-            }
-            data[cat].push({id:Date.now(), amount:amt, desc, type, date: new Date().toLocaleDateString('ar-EG')});
-            localStorage.data = JSON.stringify(data);
-            updateViews();
-        }
-
-        function del(cat, id) {
-            if(confirm('حذف؟')) { data[cat] = data[cat].filter(x=>x.id!==id); localStorage.data=JSON.stringify(data); updateViews(); }
-        }
-
         function populateCats() {
             document.querySelectorAll('.dynamic-cat').forEach(s => {
                 s.innerHTML = ''; set.cats.forEach(c => s.innerHTML += `<option>${c}</option>`);
@@ -539,7 +544,7 @@
             let l = document.getElementById('categories-list'); if(!l) return;
             l.innerHTML = ''; set.cats.forEach(c => l.innerHTML += `<span style="background:#333; padding:5px 10px; border-radius:15px; font-size:0.8rem">${c} <span onclick="remCat('${c}')">&times;</span></span>`);
         }
-        function addNewCategory() { let v=document.getElementById('new-cat-input').value; if(v) { set.cats.push(v); localStorage.set=JSON.stringify(set); populateCats(); } }
+        function addNewCategory() { let v=document.getElementById('new-cat-input').value; if(v) { set.cats.push(v); localStorage.set=JSON.stringify(set); populateCats(); showToast('تمت الإضافة'); } }
         function remCat(c) { set.cats=set.cats.filter(x=>x!==c); localStorage.set=JSON.stringify(set); populateCats(); }
 
         function updateTransferOptions() {
@@ -551,21 +556,34 @@
             let f = document.getElementById('transfer-from').value;
             let t = document.getElementById('transfer-to').value;
             let a = parseFloat(document.getElementById('transfer-amount').value);
-            if(!a) return;
-            if(f=='cash') add('personal', {amt:a, desc:`تحويل لـ ${t}`, type:'single'});
-            else add('meeza', {amt:a, desc:`تحويل لـ ${t}`, type:'out'});
-            if(t=='meeza') add('meeza', {amt:a, desc:`تحويل من ${f}`, type:'in'});
-            else add('fawry', {amt:a, desc:`تحويل من ${f}`, type:'in'});
+            if(!a || a<=0) return showToast('الرجاء إدخال مبلغ صحيح للتحويل', 'error');
+            
+            // استخدام الدالة المصححة addTransaction
+            if(f=='cash') addTransaction('personal', {amt:a, desc:`تحويل لـ ${t}`, type:'single'});
+            else addTransaction('meeza', {amt:a, desc:`تحويل لـ ${t}`, type:'out'});
+            
+            if(t=='meeza') addTransaction('meeza', {amt:a, desc:`تحويل من ${f}`, type:'in'});
+            else addTransaction('fawry', {amt:a, desc:`تحويل من ${f}`, type:'in'});
+            
             document.getElementById('transfer-amount').value='';
+            showToast('تم التحويل بنجاح');
         }
 
         function setTxt(id,v) { let e=document.getElementById(id); if(e) e.innerText = v.toLocaleString(); }
         function sum(arr,t) { return arr.filter(i=>i.type==t).reduce((a,b)=>a+b.amount,0); }
-        function setBudget() { set.budget = parseFloat(document.getElementById('budget-limit').value)||0; localStorage.set=JSON.stringify(set); updateViews(); }
+        function setBudget() { set.budget = parseFloat(document.getElementById('budget-limit').value)||0; localStorage.set=JSON.stringify(set); updateViews(); showToast('تم تحديث الميزانية'); }
         
-        function exportData() { let d = JSON.stringify({data, set}); let l = document.createElement('a'); l.href='data:application/json;charset=utf-8,'+encodeURIComponent(d); l.download='omar.json'; l.click(); }
-        function importData() { let i=document.createElement('input'); i.type='file'; i.onchange=e=>{ let r=new FileReader(); r.onload=ev=>{ try{ let c=JSON.parse(ev.target.result); data=c.data; set=c.set; localStorage.data=JSON.stringify(data); localStorage.set=JSON.stringify(set); location.reload(); }catch{} }; r.readAsText(e.target.files[0]); }; i.click(); }
-        function resetData() { if(confirm('هل أنت متأكد؟')) { localStorage.clear(); location.reload(); } }
+        function showToast(msg, type='success') {
+            let c = document.getElementById('toast-container');
+            let t = document.createElement('div'); t.className = `toast ${type}`;
+            t.innerText = msg; c.appendChild(t);
+            setTimeout(() => t.classList.add('show'), 10);
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
+        }
+
+        function exportData() { let d = JSON.stringify({data, set}); let l = document.createElement('a'); l.href='data:application/json;charset=utf-8,'+encodeURIComponent(d); l.download='omar.json'; l.click(); showToast('تم حفظ النسخة'); }
+        function importData() { let i=document.createElement('input'); i.type='file'; i.onchange=e=>{ let r=new FileReader(); r.onload=ev=>{ try{ let c=JSON.parse(ev.target.result); data=c.data; set=c.set; localStorage.data=JSON.stringify(data); localStorage.set=JSON.stringify(set); location.reload(); }catch{ showToast('الملف تالف', 'error'); } }; r.readAsText(e.target.files[0]); }; i.click(); }
+        function resetData() { if(confirm('هل أنت متأكد من حذف كل البيانات؟')) { localStorage.clear(); location.reload(); } }
     </script>
 </body>
 </html>
